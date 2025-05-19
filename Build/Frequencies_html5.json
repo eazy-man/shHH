@@ -2,7 +2,7 @@
 "companyName": "Nerdspartan",
 "productName": "10-103",
 "productVersion": "0.1",
-"dataUrl": "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/Build/Frequencies_html5.data.unityweb",
+"dataUrl": "https://raw.githack.com/eazy-man/shHH/main/Build/Frequencies_html5.data.unityweb",
 "wasmCodeUrl": "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/Build/Frequencies_html5.wasm.code.unityweb",
 "wasmFrameworkUrl": "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/Build/Frequencies_html5.wasm.framework.unityweb",
 "graphicsAPI": ["WebGL 2.0","WebGL 1.0"],
