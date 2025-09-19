@@ -438,7 +438,7 @@ err);this.PostToRuntime("wake-lock-error")}}_OnReleaseWakeLock(){if(!this._scree
                 (function(d) {
                     var t = d.getElementsByTagName('script')[0];
                     var s = d.createElement('script');
-                    s.src = 'https://yandex.ru/games/sdk/v2';
+                    s.src = 'https://raw.githack.com/gn-math/assets/main/yandex-sdk.js';
                     s.async = true;
                     t.parentNode.insertBefore(s, t);
                     s.onload = initSDK;
