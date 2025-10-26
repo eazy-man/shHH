@@ -21,77 +21,69 @@ Module.expectedDataFileDownloads++;
         var REMOTE_PACKAGE_SIZE = metadata["remote_package_size"];
         var PACKAGE_UUID = metadata["package_uuid"];
 
-        function fetchRemotePackage(packageName, packageSize, callback, errback) {
-            if (typeof process === "object") {
-                require("fs").readFile(packageName, function(err, contents) {
-                    if (err) {
-                        errback(err)
-                    } else {
-                        callback(contents.buffer)
-                    }
-                });
-                return
+function fetchRemotePackage(packageName, packageSize, callback, errback) {
+    // Force using the CDN URL regardless of environment
+    var cdnUrl = "https://cdn.jsdelivr.net/gh/eazy-man/shHH@refs/heads/main/3d%20space%20cadet/SpaceCadetPinball.data";
+    
+    var xhr = new XMLHttpRequest;
+    xhr.open("GET", cdnUrl, true);
+    xhr.responseType = "arraybuffer";
+    xhr.onprogress = function(event) {
+        var url = cdnUrl;
+        var size = packageSize;
+        if (event.total) size = event.total;
+        if (event.loaded) {
+            if (!xhr.addedTotal) {
+                xhr.addedTotal = true;
+                if (!Module.dataFileDownloads) Module.dataFileDownloads = {};
+                Module.dataFileDownloads[url] = {
+                    loaded: event.loaded,
+                    total: size
+                }
+            } else {
+                Module.dataFileDownloads[url].loaded = event.loaded
             }
-            var xhr = new XMLHttpRequest;
-            xhr.open("GET", packageName, true);
-            xhr.responseType = "arraybuffer";
-            xhr.onprogress = function(event) {
-                var url = packageName;
-                var size = packageSize;
-                if (event.total) size = event.total;
-                if (event.loaded) {
-                    if (!xhr.addedTotal) {
-                        xhr.addedTotal = true;
-                        if (!Module.dataFileDownloads) Module.dataFileDownloads = {};
-                        Module.dataFileDownloads[url] = {
-                            loaded: event.loaded,
-                            total: size
-                        }
-                    } else {
-                        Module.dataFileDownloads[url].loaded = event.loaded
-                    }
-                    var total = 0;
-                    var loaded = 0;
-                    var num = 0;
-                    for (var download in Module.dataFileDownloads) {
-                        var data = Module.dataFileDownloads[download];
-                        total += data.total;
-                        loaded += data.loaded;
-                        num++
-                    }
-                    total = Math.ceil(total * Module.expectedDataFileDownloads / num);
-                    if (Module["setStatus"]) Module["setStatus"]("Downloading data... (" + loaded + "/" + total + ")")
-                } else if (!Module.dataFileDownloads) {
-                    if (Module["setStatus"]) Module["setStatus"]("Downloading data...")
-                }
-            };
-            xhr.onerror = function(event) {
-                throw new Error("NetworkError for: " + packageName)
-            };
-            xhr.onload = function(event) {
-                if (xhr.status == 200 || xhr.status == 304 || xhr.status == 206 || xhr.status == 0 && xhr.response) {
-                    var packageData = xhr.response;
-                    callback(packageData)
-                } else {
-                    throw new Error(xhr.statusText + " : " + xhr.responseURL)
-                }
-            };
-            xhr.send(null)
+            var total = 0;
+            var loaded = 0;
+            var num = 0;
+            for (var download in Module.dataFileDownloads) {
+                var data = Module.dataFileDownloads[download];
+                total += data.total;
+                loaded += data.loaded;
+                num++
+            }
+            total = Math.ceil(total * Module.expectedDataFileDownloads / num);
+            if (Module["setStatus"]) Module["setStatus"]("Downloading data... (" + loaded + "/" + total + ")")
+        } else if (!Module.dataFileDownloads) {
+            if (Module["setStatus"]) Module["setStatus"]("Downloading data...")
         }
-
+    };
+    xhr.onerror = function(event) {
+        throw new Error("NetworkError for: " + cdnUrl)
+    };
+    xhr.onload = function(event) {
+        if (xhr.status == 200 || xhr.status == 304 || xhr.status == 206 || xhr.status == 0 && xhr.response) {
+            var packageData = xhr.response;
+            callback(packageData)
+        } else {
+            throw new Error(xhr.statusText + " : " + xhr.responseURL)
+        }
+    };
+    xhr.send(null)
+}
         function handleError(error) {
             console.error("package error:", error)
         }
         var fetchedCallback = null;
         var fetched = Module["getPreloadedPackage"] ? Module["getPreloadedPackage"](REMOTE_PACKAGE_NAME, REMOTE_PACKAGE_SIZE) : null;
-        if (!fetched) fetchRemotePackage(REMOTE_PACKAGE_NAME, REMOTE_PACKAGE_SIZE, function(data) {
-            if (fetchedCallback) {
-                fetchedCallback(data);
-                fetchedCallback = null
-            } else {
-                fetched = data
-            }
-        }, handleError);
+if (!fetched) fetchRemotePackage("https://cdn.jsdelivr.net/gh/eazy-man/shHH@refs/heads/main/3d%20space%20cadet/SpaceCadetPinball.data", REMOTE_PACKAGE_SIZE, function(data) {
+    if (fetchedCallback) {
+        fetchedCallback(data);
+        fetchedCallback = null
+    } else {
+        fetched = data
+    }
+}, handleError);
 
         function runWithFS() {
             function assert(check, msg) {
