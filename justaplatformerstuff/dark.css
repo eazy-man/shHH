@@ -1,0 +1,69 @@
+body {
+  background: #333333;
+  color: white;
+}
+#background {
+  background: #888888;
+}
+#optionsPage a,
+#moreInfo a,
+.eventDoc a {
+  color: lightblue;
+}
+.optionButton {
+  filter: invert(80%);
+}
+#moreInfo {
+  background: #00000088;
+  color: white;
+}
+
+.textBlockText,
+.blockSect,
+.noEditText,
+.blockProp,
+.editOptions > div,
+.saveMenu > div > div,
+#commandList > div > div {
+  background: #00000088;
+}
+.playDisp,
+.infoDisp,
+.helpMenu,
+.eventEditor,
+.eventOption,
+.eventDoc {
+  background: #444444bb;
+}
+.blockSelect,
+.blockEdit {
+  background: #bbbbbb88;
+}
+button,
+input,
+select,
+.key,
+.tabButton,
+.bottomTabButton {
+  background: #333333;
+  color: white;
+}
+input,
+button,
+select {
+  border-color: white;
+}
+.optionButton {
+  border-color: black;
+}
+.buttonOn {
+  background-color: #008800;
+}
+.optionButton.buttonOn,
+.optionButton:active {
+  background-color: #ff88ff;
+}
+.buttonOccupied {
+  background-color: #888800;
+  background-blend-mode: multiply;
+}
