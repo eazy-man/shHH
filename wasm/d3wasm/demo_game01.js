@@ -30,51 +30,61 @@ Module.expectedDataFileDownloads++;
     var PACKAGE_UUID = metadata.package_uuid;
   
     function fetchRemotePackage(packageName, packageSize, callback, errback) {
-      var xhr = new XMLHttpRequest();
-      xhr.open('GET', packageName, true);
-      xhr.responseType = 'arraybuffer';
-      xhr.onprogress = function(event) {
-        var url = packageName;
-        var size = packageSize;
-        if (event.total) size = event.total;
-        if (event.loaded) {
-          if (!xhr.addedTotal) {
-            xhr.addedTotal = true;
-            if (!Module.dataFileDownloads) Module.dataFileDownloads = {};
-            Module.dataFileDownloads[url] = {
-              loaded: event.loaded,
-              total: size
-            };
-          } else {
-            Module.dataFileDownloads[url].loaded = event.loaded;
-          }
-          var total = 0;
-          var loaded = 0;
-          var num = 0;
-          for (var download in Module.dataFileDownloads) {
-          var data = Module.dataFileDownloads[download];
-            total += data.total;
-            loaded += data.loaded;
-            num++;
-          }
-          total = Math.ceil(total * Module.expectedDataFileDownloads/num);
-          if (Module['setStatus']) Module['setStatus']('Downloading data... (' + loaded + '/' + total + ')');
-        } else if (!Module.dataFileDownloads) {
-          if (Module['setStatus']) Module['setStatus']('Downloading data...');
-        }
-      };
-      xhr.onerror = function(event) {
-        throw new Error("NetworkError for: " + packageName);
+      var NUM_PARTS = 20;
+      var parts = [];
+      var totalLoaded = 0;
+
+      function padNum(n) {
+        return n < 10 ? '0' + n : '' + n;
       }
-      xhr.onload = function(event) {
-        if (xhr.status == 200 || xhr.status == 304 || xhr.status == 206 || (xhr.status == 0 && xhr.response)) { // file URLs can return 0
-          var packageData = xhr.response;
-          callback(packageData);
-        } else {
-          throw new Error(xhr.statusText + " : " + xhr.responseURL);
+
+      function fetchPart(partIndex) {
+        if (partIndex > NUM_PARTS) {
+          // All parts done - concatenate and call callback
+          var totalSize = 0;
+          for (var i = 0; i < parts.length; i++) totalSize += parts[i].byteLength;
+          var combined = new Uint8Array(totalSize);
+          var offset = 0;
+          for (var i = 0; i < parts.length; i++) {
+            combined.set(new Uint8Array(parts[i]), offset);
+            offset += parts[i].byteLength;
+            parts[i] = null;
+          }
+          callback(combined.buffer);
+          return;
         }
-      };
-      xhr.send(null);
+
+        var partName = packageName + '.part' + padNum(partIndex);
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', partName, true);
+        xhr.responseType = 'arraybuffer';
+
+        xhr.onprogress = function(event) {
+          var loaded = totalLoaded + (event.loaded || 0);
+          if (Module['setStatus']) {
+            Module['setStatus']('Downloading data... part ' + partIndex + '/' + NUM_PARTS +
+              ' (' + Math.round(loaded / 1048576) + ' MB / ' + Math.round(packageSize / 1048576) + ' MB)');
+          }
+        };
+
+        xhr.onerror = function() {
+          errback(new Error("NetworkError for: " + partName));
+        };
+
+        xhr.onload = function() {
+          if (xhr.status == 200 || xhr.status == 304 || xhr.status == 206 || (xhr.status == 0 && xhr.response)) {
+            totalLoaded += xhr.response.byteLength;
+            parts.push(xhr.response);
+            fetchPart(partIndex + 1);
+          } else {
+            errback(new Error(xhr.statusText + " : " + xhr.responseURL));
+          }
+        };
+
+        xhr.send(null);
+      }
+
+      fetchPart(1);
     };
 
     function handleError(error) {
