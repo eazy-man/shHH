@@ -31,60 +31,58 @@ Module.expectedDataFileDownloads++;
   
     function fetchRemotePackage(packageName, packageSize, callback, errback) {
       var NUM_PARTS = 20;
-      var parts = [];
-      var totalLoaded = 0;
+      var partLoaded = new Array(NUM_PARTS).fill(0);
 
-      function padNum(n) {
-        return n < 10 ? '0' + n : '' + n;
-      }
+      function padNum(n) { return n < 10 ? '0' + n : '' + n; }
 
-      function fetchPart(partIndex) {
-        if (partIndex > NUM_PARTS) {
-          // All parts done - concatenate and call callback
-          var totalSize = 0;
-          for (var i = 0; i < parts.length; i++) totalSize += parts[i].byteLength;
-          var combined = new Uint8Array(totalSize);
-          var offset = 0;
-          for (var i = 0; i < parts.length; i++) {
-            combined.set(new Uint8Array(parts[i]), offset);
-            offset += parts[i].byteLength;
-            parts[i] = null;
-          }
-          callback(combined.buffer);
-          return;
+      function updateStatus() {
+        var loaded = partLoaded.reduce(function(a, b) { return a + b; }, 0);
+        if (Module['setStatus']) {
+          Module['setStatus']('Downloading data... (' +
+            Math.round(loaded / 1048576) + ' MB / ' +
+            Math.round(packageSize / 1048576) + ' MB)');
         }
-
-        var partName = packageName + '.part' + padNum(partIndex);
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', partName, true);
-        xhr.responseType = 'arraybuffer';
-
-        xhr.onprogress = function(event) {
-          var loaded = totalLoaded + (event.loaded || 0);
-          if (Module['setStatus']) {
-            Module['setStatus']('Downloading data... part ' + partIndex + '/' + NUM_PARTS +
-              ' (' + Math.round(loaded / 1048576) + ' MB / ' + Math.round(packageSize / 1048576) + ' MB)');
-          }
-        };
-
-        xhr.onerror = function() {
-          errback(new Error("NetworkError for: " + partName));
-        };
-
-        xhr.onload = function() {
-          if (xhr.status == 200 || xhr.status == 304 || xhr.status == 206 || (xhr.status == 0 && xhr.response)) {
-            totalLoaded += xhr.response.byteLength;
-            parts.push(xhr.response);
-            fetchPart(partIndex + 1);
-          } else {
-            errback(new Error(xhr.statusText + " : " + xhr.responseURL));
-          }
-        };
-
-        xhr.send(null);
       }
 
-      fetchPart(1);
+      function fetchPart(index) {
+        return new Promise(function(resolve, reject) {
+          var partName = packageName + '.part' + padNum(index + 1);
+          var xhr = new XMLHttpRequest();
+          xhr.open('GET', partName, true);
+          xhr.responseType = 'arraybuffer';
+          xhr.onprogress = function(event) {
+            partLoaded[index] = event.loaded || 0;
+            updateStatus();
+          };
+          xhr.onerror = function() { reject(new Error("NetworkError for: " + partName)); };
+          xhr.onload = function() {
+            if (xhr.status == 200 || xhr.status == 304 || xhr.status == 206 || (xhr.status == 0 && xhr.response)) {
+              partLoaded[index] = xhr.response.byteLength;
+              updateStatus();
+              resolve(xhr.response);
+            } else {
+              reject(new Error(xhr.statusText + " : " + xhr.responseURL));
+            }
+          };
+          xhr.send(null);
+        });
+      }
+
+      var promises = [];
+      for (var i = 0; i < NUM_PARTS; i++) promises.push(fetchPart(i));
+
+      Promise.all(promises).then(function(parts) {
+        var totalSize = 0;
+        for (var i = 0; i < parts.length; i++) totalSize += parts[i].byteLength;
+        var combined = new Uint8Array(totalSize);
+        var offset = 0;
+        for (var i = 0; i < parts.length; i++) {
+          combined.set(new Uint8Array(parts[i]), offset);
+          offset += parts[i].byteLength;
+          parts[i] = null;
+        }
+        callback(combined.buffer);
+      }).catch(errback);
     };
 
     function handleError(error) {
