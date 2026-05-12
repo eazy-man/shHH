@@ -1,4 +1,4 @@
-[
+var gamesData = [
     {
         title: "Super Mario Bros",
         image: "images/Super_Mario_Bros._box.png",
