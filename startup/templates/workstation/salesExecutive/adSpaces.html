@@ -1,0 +1,388 @@
+<!-- Overview -->
+<div class="flex-column" style="height: 100%;" ng-if="adSpacesCtrl.view == null">
+    <div class="item-list flex-row">
+        <div class="item flex1">
+            <h3 class="text-left">
+                <span ng-if="adSpacesCtrl.currentContract">
+                <span localize="contract_number"
+                      localize-data-number="{{adSpacesCtrl.currentContract.contract.number}}"></span>
+                    ({{ adSpacesCtrl.currentContract.product.name}}, {{ adSpacesCtrl.currentContract.timeslot.start  }}:00 - {{ adSpacesCtrl.currentContract.timeslot.end }}:00)
+                </span>
+                <span localize="no_contract" ng-if="!adSpacesCtrl.currentContract"></span>
+
+                <button class="blue tiny pull-right" localize="show_feature" ng-if="adSpacesCtrl.currentContract"
+                        ng-click="adSpacesCtrl.showFeature()"></button>
+            </h3>
+            <div class="content text-center" ng-if="adSpacesCtrl.currentContract == null">
+                <div class="alert alert-warning" localize="no_current_contract_warning"></div>
+            </div>
+            <div class="content flex-super-center current-contract" ng-if="adSpacesCtrl.currentContract != null">
+                <div class="flex1 flex-super-center flex-column">
+                    <img ng-src="{{ adSpacesCtrl.currentContract.competitorProduct.logoPath }}" class="companyLogo">
+                    <button class="small red margin-top" localize="cancel"
+                            ng-click="adSpacesCtrl.cancelContract()"></button>
+                </div>
+
+                <div class="flex4">
+                    <table class="medium">
+                        <tr>
+                            <td class="dimmed" localize="cpm"></td>
+                            <td class="text-bold">
+                                <i class="fa fa-align-left"
+                                   ng-if="adSpacesCtrl.currentContract.featureInstance.featureName == 'TextAds'"></i>
+                                <i class="fa fa-picture-o"
+                                   ng-if="adSpacesCtrl.currentContract.featureInstance.featureName == 'BannerAds'"></i>
+                                <i class="fa fa-video-camera"
+                                   ng-if="adSpacesCtrl.currentContract.featureInstance.featureName == 'VideoAds'"></i>
+                                {{ adSpacesCtrl.currentContract.contract.cpm | currency }}/CPM
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed" localize="impressions"></td>
+                            <td class="text-bold">
+                                {{ adSpacesCtrl.currentContract.contract.guaranteedImpressions | number }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed" localize="contract_length"></td>
+                            <td class="text-bold">
+                                <div class="progressBar"
+                                     ng-if="adSpacesCtrl.currentContract.contract.startDay <= $root.daysPlayed">
+                                    <div class="indicator blue small"
+                                         style="width: {{ adSpacesCtrl.currentContract.lengthProgress }}%">
+                                        <span class="small">{{ adSpacesCtrl.currentContract.daysCompleted }} / <span localize="x_days"
+                                                                                                       localize-data-days="{{adSpacesCtrl.currentContract.contract.length}}"></span></span>
+                                    </div>
+                                </div>
+                                <div ng-if="adSpacesCtrl.currentContract.contract.startDay > $root.daysPlayed">
+                                    <span localize="starts_tomorrow"></span>
+                                    (<span localize="x_days"
+                                           localize-data-days="{{adSpacesCtrl.currentContract.contract.length}}"></span>)
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed" localize="auto_renew"></td>
+                            <td class="text-bold">
+                                <div class="toggle-switch"
+                                     tooltip="{{ adSpacesCtrl.autoRenewString }}"
+                                     tooltip-append-to-body="true"
+                                     ng-click="adSpacesCtrl.currentContract.contract.autoRenew = !adSpacesCtrl.currentContract.contract.autoRenew"
+                                     ng-class="{active: adSpacesCtrl.currentContract.contract.autoRenew}">
+                                    <span></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div class="flex4" style="height: 100%">
+                    <canvas id="impressions-chart" style="height: 100%; width: 100%;"
+                            ng-show="adSpacesCtrl.currentContract.contract.startDay <= $root.daysPlayed"></canvas>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    <!-- Leads -->
+    <div class="item flex3">
+        <div class="padding">
+            <div class="leads-container">
+                <table class="medium margin-bottom" ts-wrapper>
+                    <tr ng-show="adSpacesCtrl.maxLeads > adSpacesCtrl.leads.length || adSpacesCtrl.showFilters">
+                        <td colspan="1" localize="searching_for_new_lead"></td>
+                        <td colspan="3">
+                            <div class="progressBar" ng-show="!adSpacesCtrl.showFilters">
+                                <div class="indicator"
+                                     style="width: {{ adSpacesCtrl.taskProgress }}%;">
+                                    <span class="small">{{ adSpacesCtrl.taskProgress }}%
+                                        (<span localize="filter_impressions_label"
+                                               localize-data-min="{{$root.selectedWorkstation.employee.leadFilters.min}}"
+                                               localize-data-min-format="number"
+                                               localize-data-max="{{adSpacesCtrl.maxFilterImpressionsLabel}}"></span>)
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div ng-show="adSpacesCtrl.showFilters">
+                                <table class="small text-center text-bold">
+                                    <tr>
+                                        <td localize="min_impressions"></td>
+                                        <td localize="max_impressions"></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td><input type="range" min="0" max="{{adSpacesCtrl.maxFilterImpressions}}" step="1000" ng-model="adSpacesCtrl.minImpressions"></td>
+                                        <td><input type="range" min="1" max="{{adSpacesCtrl.maxFilterImpressions}}" step="1000" ng-model="adSpacesCtrl.maxImpressions"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            <input type="text" class="small width50 text-center" number-input ng-model="adSpacesCtrl.minImpressions">
+                                        </td>
+                                        <td>
+                                            <input type="text" class="small width50 text-center" number-input ng-model="adSpacesCtrl.maxImpressions">
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </td>
+                        <td>
+                            <button class="small blue" localize="filter" ng-mousedown="adSpacesCtrl.showFilters = true" ng-show="adSpacesCtrl.showFilters != true"></button>
+                            <button class="small" localize="back" ng-mousedown="adSpacesCtrl.showFilters = false" ng-show="adSpacesCtrl.showFilters == true"></button>
+                        </td>
+                    </tr>
+                    <tr ng-if="adSpacesCtrl.maxLeads <= adSpacesCtrl.leads.length">
+                        <td colspan="5">
+                            <div class="alert alert-info text-center" localize="maximum_leads_reached"></div>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <th style="display: none" ts-criteria="timestamp" ts-default="true"></th>
+                        <th localize="lead_owner" style="width: 24%" ts-criteria="employeeName"></th>
+                        <th style="width: 8%"  ts-criteria="leadName"></th>
+                        <th style="width: 31%" ts-criteria="priceExpectations">
+                            <span localize="offers"></span>
+                            <tooltip key="offers_info"></tooltip>
+                        </th>
+                        <th style="width: 20%" ts-criteria="impressions">
+                            <span localize="impressions"></span>
+                            <tooltip key="impressions_info"></tooltip>
+                        </th>
+                        <th style="width: 20%" class="text-right">
+                            <button class="small red" ng-click="adSpacesCtrl.deleteAllLeads()">
+                                <i class="fa fa-times"></i></button>
+                        </th>
+                    </tr>
+                    <tr ng-repeat="leadInfo in adSpacesCtrl.leads track by leadInfo.lead.id" ts-repeat ts-hide-no-data>
+                        <td>{{ leadInfo.employeeName }}</td>
+                        <td>
+                            <img ng-src="{{ leadInfo.competitorProduct.logoPath }}" class="companyLogo small" tooltip="{{leadInfo.competitorProduct.name }}">
+                        </td>
+                        <td>
+                            <div class="label-row secondary">
+                                <span><i class="fa fa-align-left"></i> {{ leadInfo.competitorProduct.priceExpectations | currency:'$':2 }}</span>
+                                <span><i class="fa fa-picture-o"></i> {{ leadInfo.competitorProduct.priceExpectations * 1.5 | currency:'$':2 }}</span>
+                                <span><i class="fa fa-video-camera"></i> {{ leadInfo.competitorProduct.priceExpectations * 2 | currency:'$':2 }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <i class="fa fa-eye"></i>
+                            {{ leadInfo.lead.impressions | number }}
+                        </td>
+                        <td class="text-right">
+                            <button class="small"
+                                    ng-click="adSpacesCtrl.showLead(leadInfo)"
+                                    localize="negotiate"
+                                    ng-class="{ disabled: adSpacesCtrl.currentContract != null}"
+                                    tooltip="{{ adSpacesCtrl.contractExistsAlreadyString }}"
+                                    tooltip-enable="adSpacesCtrl.currentContract != null"
+                                    tooltip-append-to-body="true"></button>
+                            <button class="small red" ng-click="adSpacesCtrl.deleteLead(leadInfo)">
+                                <i class="fa fa-times"></i></button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Lead -->
+<div class="flex-row item-list" style="height: 100%;" ng-if="adSpacesCtrl.view == 'lead'">
+    <div class="item flex1 terms" style="margin-right:0"
+         ng-class="{ 'disable-container': adSpacesCtrl.negotiation.started }">
+        <h3 localize="terms"></h3>
+        <div class="content">
+            <table>
+                <tr>
+                    <td localize="product" class="dimmed" style="width: 40%"></td>
+                    <td class="text-bold" style="width: 60%">
+                        <div dropdown-select="adSpacesCtrl.products" dropdown-model="adSpacesCtrl.selectedProduct"
+                             dropdown-item-label="name" dropdown-onchange="adSpacesCtrl.productChanged(selected)">
+                        </div>
+                    </td>
+                </tr>
+                <tr ng-if="adSpacesCtrl.adTypes.length > 0">
+                    <td localize="type" class="dimmed"></td>
+                    <td class="text-bold">
+                        <div dropdown-select="adSpacesCtrl.adTypes" dropdown-model="adSpacesCtrl.selectedAdType"
+                             dropdown-item-label="label" dropdown-onchange="adSpacesCtrl.adTypeChanged(selected)">
+                        </div>
+                    </td>
+                </tr>
+                <tr ng-if="adSpacesCtrl.timeSlots.length > 0" class="border-bottom">
+                    <td localize="timeslot" class="dimmed"></td>
+                    <td class="text-bold">
+                        <div dropdown-select="adSpacesCtrl.timeSlots" dropdown-model="adSpacesCtrl.selectedTimeSlot"
+                             dropdown-item-label="label" dropdown-onchange="adSpacesCtrl.timeSlotChanged(selected)">
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div class="alert alert-danger" ng-if="adSpacesCtrl.adTypes.length == 0" localize="no_ad_features_warning"></div>
+            <div class="alert alert-danger" ng-if="adSpacesCtrl.adTypes.length > 0 && adSpacesCtrl.timeSlots.length == 0" localize="no_timeslots_warning"></div>
+
+            <table ng-show="adSpacesCtrl.adTypes.length > 0 && adSpacesCtrl.timeSlots.length > 0">
+                <tr>
+                    <td class="dimmed text-center">
+                        <span localize="impressions_yesterday"></span>
+                    </td>
+                    <td class="dimmed text-center">
+                        <span localize="guaranteed_impressions"></span>
+                        <tooltip key="guaranteed_impressions_info"></tooltip>
+                    </td>
+                </tr>
+                <tr class="border-bottom">
+                    <td class="text-bold text-center">
+                        {{ adSpacesCtrl.yesterdaysImpressions | number }}
+                    </td>
+                    <td class="text-bold">
+                        <input type="range" class="secondary-color" ng-model="adSpacesCtrl.guaranteedImpressions"
+                               step="100" min="{{adSpacesCtrl.negotiation.maxImpressions * 0.3 }}"
+                               max="{{ adSpacesCtrl.negotiation.maxImpressions }}">
+                        <div class="text-center"
+                             ng-class="{'color-red animated flash infinite': adSpacesCtrl.guaranteedImpressions > adSpacesCtrl.yesterdaysImpressions }">
+                            {{ adSpacesCtrl.guaranteedImpressions | number }}
+                            <tooltip ng-show="adSpacesCtrl.guaranteedImpressions > adSpacesCtrl.yesterdaysImpressions"
+                                     key="exceeded_yesterday_impressions_warning"></tooltip>
+                        </div>
+                    </td>
+                </tr>
+                <tr class="border-bottom">
+                    <td class="dimmed">
+                        <span localize="contract_length"></span>
+                        <tooltip key="contract_length_info"></tooltip>
+                    </td>
+                    <td class="text-bold">
+                        <input type="range" class="secondary-color" ng-model="adSpacesCtrl.contractLength"
+                               value="{{adSpacesCtrl.contractLength}}" step="1" min="1" max="10">
+                        <div class="text-center" localize="x_days"
+                             localize-data-days="{{adSpacesCtrl.contractLength}}"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td localize="offer" class="dimmed"></td>
+                    <td class="text-bold" localize="cpm_price"
+                        localize-data-price="{{ adSpacesCtrl.negotiation.initialCpm}}"
+                        localize-data-price-format="currency1"></td>
+                </tr>
+                <tr>
+                    <td localize="penalty_fee" class="dimmed"></td>
+                    <td class="text-bold color-red">
+                        20%
+                        <tooltip key="penalty_fee_info"></tooltip>
+                    </td>
+                </tr>
+                <tr class="large">
+                    <td class="dimmed">
+                        <span localize="daily_payment"></span>
+                        <tooltip key="daily_payment_tooltip"></tooltip>
+                    </td>
+                    <td class="text-bold">{{ adSpacesCtrl.negotiation.dailyPayment | currency:'$':0 }}
+                    </td>
+                </tr>
+            </table>
+            <div ng-show="adSpacesCtrl.adTypes.length > 0 && adSpacesCtrl.timeSlots.length > 0">
+                <div class="text-center margin-top">
+                    <button class="small cancel" localize="cancel" ng-click="adSpacesCtrl.view = null"></button>
+                    <button class="small" localize="accept_contract" ng-click="adSpacesCtrl.acceptContract()"
+                            ng-disabled="adSpacesCtrl.selectedTimeSlot == null"></button>
+                    <button class="small blue" localize="negotiate" ng-click="adSpacesCtrl.startNegotiate()"
+                            ng-disabled="adSpacesCtrl.selectedTimeSlot == null"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="item flex1" ng-class="{ 'disable-container': !adSpacesCtrl.negotiation.started }">
+        <h3 localize="negotiation"></h3>
+        <div class="content">
+            <div class="conversation">
+                <div ng-repeat="offer in adSpacesCtrl.negotiation.offers track by offer.id">
+                    <div ng-if="offer.fromCustomer && (adSpacesCtrl.hideLastOffer == false || (adSpacesCtrl.hideLastOffer && !$last))">
+                        <div class="line" ng-class="{ accepted: offer.accepted }">
+                            <div class="image">
+                                <img ng-src="{{ adSpacesCtrl.competitorProduct.logoPath }}" class="companyLogo small">
+                            </div>
+                            <span ng-if="!offer.accepted">
+                                <span localize="negotiation_offered"
+                                      localize-data-name="{{adSpacesCtrl.competitorProduct.name}}"
+                                      localize-data-offer="{{offer.cpm}}" localize-data-offer-format="currency1"></span>
+                                <span ng-if="$last && !adSpacesCtrl.negotiation.completed">
+                                    <br>
+                                    <button class="tiny" localize="accept_offer"
+                                            ng-click="adSpacesCtrl.acceptOffer(offer)"></button>
+                                </span>
+                            </span>
+                            <span ng-if="offer.accepted" localize="negotiation_accepted"
+                                  localize-data-name="{{adSpacesCtrl.competitorProduct.name}}"
+                                  localize-data-offer="{{offer.cpm}}" localize-data-offer-format="currency1"></span>
+                            <div ng-if="!offer.accepted" class="smiley small"
+                                 ng-class="{ moody: offer.mood <= 50 && offer.mood > 25, sad: offer.mood <= 25 }"
+                                 tooltip="{{offer.mood}}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="line offer" ng-if="!offer.fromCustomer" localize="negotiation_you_offered"
+                         localize-data-offer="{{offer.cpm}}" localize-data-offer-format="currency1">
+                    </div>
+
+                    <div class="line typing" ng-if="adSpacesCtrl.hideLastOffer && $last">
+                        <div class="image">
+                            <img ng-src="{{ adSpacesCtrl.competitorProduct.logoPath }}" class="companyLogo small">
+                        </div>
+                        <span>
+                            <img src="images/typing.svg" class="typing-icon">
+                        </span>
+                    </div>
+                </div>
+                <div class="line customerLeft"
+                     ng-if="adSpacesCtrl.negotiation.customerLeft && adSpacesCtrl.hideLastOffer == false">
+                    <div class="image">
+                        <img ng-src="{{ adSpacesCtrl.competitorProduct.logoPath }}" class="companyLogo small">
+                    </div>
+                    <span localize="negotiation_left"
+                          localize-data-name="{{adSpacesCtrl.competitorProduct.name}}"></span>
+                    <div class="smiley small sad"></div>
+                </div>
+
+                <div class="line offer accepted" ng-if="adSpacesCtrl.negotiation.acceptedCustomerOffer">
+                    <span class="width100" localize="negotiation_accepted_offer"
+                          localize-data-offer="{{adSpacesCtrl.negotiation.cpm}}"
+                          localize-data-offer-format="currency1"></span>
+                </div>
+            </div>
+            <hr class="secondary">
+            <div class="send-offer">
+                <div ng-if="adSpacesCtrl.negotiation.completed && !adSpacesCtrl.hideLastOffer">
+                    <button class="blue" ng-click="adSpacesCtrl.back()" localize="back">
+                    </button>
+                </div>
+                <div ng-if="!adSpacesCtrl.negotiation.completed || adSpacesCtrl.hideLastOffer">
+                    <i class="fa fa-minus-circle" ng-click="adSpacesCtrl.changeCpmOffer(-0.1)"></i>
+                    <span localize="cpm_price" localize-data-price="{{adSpacesCtrl.cpmOffer}}"
+                          localize-data-price-format="currency1"></span>
+                    <i class="fa fa-plus-circle" ng-click="adSpacesCtrl.changeCpmOffer(0.1)"></i>
+                    <br/>
+                    <input type="range" class="secondary-color" ng-model="adSpacesCtrl.cpmOffer" value="1.0" step="0.10"
+                           min="0.10"
+                           max="15.0">
+                    <div class="padding-bottom" localize="amount_per_day" localize-data-amount="{{adSpacesCtrl.cpmOfferDailyPayment || 0}}" localize-data-amount-format="currency0"></div>
+                    <table class="price-range-indicator">
+                        <tr>
+                            <td localize="cheap"></td>
+                            <td localize="average"></td>
+                            <td localize="expensive"></td>
+                        </tr>
+                    </table>
+                    <div>
+                        <button localize="leave_negotiation" class="tiny red small"
+                                ng-click="adSpacesCtrl.leaveNegotiation()"></button>
+                        <button localize="send_offer" class="blue small" ng-disabled="adSpacesCtrl.hideLastOffer"
+                                ng-click="adSpacesCtrl.sendOffer()"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

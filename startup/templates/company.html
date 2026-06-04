@@ -1,0 +1,77 @@
+<h1>
+    <i class="fa fa-pencil-square-o"></i>
+    <input type="text" ng-model="$root.settings.companyName">
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<!-- Office -->
+<div class="flex-row">
+    <div class="flex2" style="overflow-y: auto;">
+        <h3 class="text-bold text-center">{{ $root.settings.companyName }}</h3>
+        <div class="margin-top text-center text-uppercase">
+            <span localize="valuation"></span>
+            <strong>{{$root.financeData.valuation | currency: '$': 0 }}</strong>
+        </div>
+
+        <div class="item-list">
+            <div class="item">
+                <div class="content">
+                    <table class="medium">
+                        <tr>
+                            <td localize="total"></td>
+                            <td class="text-right text-bold">{{ ctrl.employeeCount }}</td>
+                        </tr>
+                        <tr ng-repeat="employeeInfo in ctrl.employees track by employeeInfo.name" class="{{ employeeInfo.name }}">
+                            <td class="padding-left-2">
+                                <icon class="{{ employeeInfo.name }}"></icon>
+                                {{ employeeInfo.label }}
+                            </td>
+                            <td class="text-right text-bold">{{ employeeInfo.count }}</td>
+                        </tr>
+                        <tr>
+                            <td localize="highscore" ng-if="$root.$root.settings.highscore != null"></td>
+                            <td class="text-right">{{ $root.$root.settings.highscore }}</td>
+                        </tr>
+                        <tr>
+                            <td localize="fired_employees"></td>
+                            <td class="text-right text-bold">{{ $root.settings.firedEmployees.length }}</td>
+                        </tr>
+                        <tr>
+                            <td localize="resigned_employees"></td>
+                            <td class="text-right text-bold">{{ $root.settings.resignedEmployees.length }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="flex3 benefits">
+        <table class="big">
+            <thead>
+            <tr>
+                <th style="width: 70%;" localize="name"></th>
+                <th localize="per_month" colspan="2"></th>
+            </tr>
+            </thead>
+            <tr ng-repeat="benefit in ctrl.benefits track by benefit.name">
+                <td>
+                    <i class="fa {{ benefit.faIcon }}"></i>
+                    <span localize="{{ benefit.name }}"></span>
+                    <br>
+                    <p class="small dimmed" localize="{{ benefit.description }}"></p>
+                </td>
+                <td>{{ benefit.price.monthly | currency }}</td>
+                <td class="text-right">
+                    <div class="toggle-switch"
+                         tooltip-html="ctrl.notUnlockedString"
+                         tooltip-append-to-body="true"
+                         tooltip-enable="!benefit.unlocked"
+                         ng-class="{ active: benefit.active, 'tier-locked': !benefit.unlocked }"
+                         ng-click="benefit.unlocked && ctrl.clickBenefit(benefit)">
+                        <span></span>
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

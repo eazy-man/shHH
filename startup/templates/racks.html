@@ -1,0 +1,45 @@
+<h1>
+    <span localize="racks"></span>
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<div class="tab-content padding">
+    <div>
+        <div class="flex-super-center">
+            <h4 class="margin-right" localize="dropdown_selection_introduction"></h4>
+            <div dropdown-select="ctrl.actions" dropdown-model="ctrl.selectedAction"
+                 dropdown-item-label="label" dropdown-onchange="ctrl.actionChanged(selected)"></div>
+        </div>
+
+        <hr class="big">
+    </div>
+
+    <table class="medium" ts-wrapper>
+        <thead>
+        <tr>
+            <th ts-criteria="selected"><input type="checkbox" ng-model="ctrl.checkboxToggle"/></th>
+            <th ts-criteria="name" localize="name"></th>
+            <th ts-criteria="clockRate" localize="clockrate"></th>
+            <th ts-criteria="rackTemperature" localize="temperature"></th>
+            <th ts-criteria="state" localize="state"></th>
+            <th ts-criteria="controller" localize="controller"></th>
+        </tr>
+        </thead>
+        <tr ng-repeat="row in ctrl.racks track by row.id" ts-repeat ts-hide-no-data>
+            <td><input type="checkbox" ng-model="row.selected"></td>
+            <td>
+                <span ng-click="ctrl.showRack(row)">{{ row.name }}</span>
+            </td>
+            <td>
+                <span ng-if="row.clockRate != null">{{ row.clockRate }}%</span>
+                <span ng-if="row.clockRate == null">-</span>
+            </td>
+            <td>{{ row.rackTemperature | temperature }}</td>
+            <td style="color: {{row.stateColor}}">{{ row.state }}</td>
+            <td>
+                <span ng-if="row.controller == null">-</span>
+                <span ng-if="row.controller != null">{{ row.controller }}</span>
+            </td>
+        </tr>
+    </table>
+</div>

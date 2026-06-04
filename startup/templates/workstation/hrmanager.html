@@ -1,0 +1,118 @@
+<div class="padding">
+    <div class="item-list horizontal flex-row">
+        <div class="item flex2" style="height: auto;">
+            <h3 localize="managers_to_control"></h3>
+            <div class="content">
+                <div class="alert alert-danger text-bold text-center" localize="no_managers_available" ng-if="ctrl.availableManagers.length == 0"></div>
+                <table ng-if="ctrl.availableManagers.length > 0">
+                    <tbody>
+                    <tr ng-repeat="employee in ctrl.availableManagers track by employee.id">
+                        <td class="text-bold">{{ employee.name }}</td>
+                        <td>
+                            <icon class="{{employee.employeeTypeName }}"></icon>
+                            <span class="{{ employee.employeeTypeName }}" localize="{{ employee.level }}"></span></td>
+                        <td class="text-right" style="display: flex; align-items: center; justify-content: flex-end;">
+                            <button class="small cancel" ng-click="ctrl.showEmployee(employee)"
+                                    tooltip="{{ GetLocalized('go_to_employee')}}" tooltip-append-to-body="true"><i
+                                    class="fa fa-user"></i></button>
+
+                            <div ng-click="ctrl.setEmployeeToManager(employee)"
+                                 ng-class="{'active': employee.managerId == $root.selectedWorkstation.employee.id }"
+                                 class="toggle-switch pull-right" style="margin: 2px;">
+                                <span></span>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="item flex1 flex-super-center" style="display: flex">
+            <table class="text-center margin">
+                <tr>
+                    <td localize="charge_in"></td>
+                </tr>
+                <tr>
+                    <td class="text-bold" style="width: 60%;">{{ ctrl.controlledEmployees.length }}/{{ ctrl.maxInCharge
+                        }}
+                    </td>
+                </tr>
+                <tr>
+                    <td localize="bonus_per_employee"></td>
+                </tr>
+                <tr>
+                    <td class="text-bold">
+                        <span ng-if="ctrl.controlledEmployees.length">{{ ctrl.bonusPerEmployee }}%</span>
+                        <span ng-if="!ctrl.controlledEmployees.length">-</span>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+
+    <div ng-show="ctrl.affectedEmployees.length > 0">
+    <h3>
+        <span localize="affected_employees"></span>
+        ({{ctrl.controlledEmployees.length}})
+        <div class="pull-right">
+            <button class="small color-white" ng-click="ctrl.sendEveryoneHome(1)"
+                    uib-tooltip="{{ Language['send_everyone_home'] }}" tooltip-append-to-body="true">
+                <i class="fa fa-home"></i>
+                +1
+            </button>
+            <button class="small color-white" ng-click="ctrl.sendEveryoneHome(3)"
+                    uib-tooltip="{{ Language['send_everyone_home'] }}" tooltip-append-to-body="true">
+                <i class="fa fa-home"></i>
+                +3
+            </button>
+        </div>
+    </h3>
+    <table>
+        <thead>
+        <tr>
+            <th></th>
+            <th style="width: 40%" localize="name"></th>
+            <th style="width: 35%" localize="mood"></th>
+            <th style="width: 20%"></th>
+        </tr>
+        </thead>
+        <tr ng-repeat="employee in ctrl.affectedEmployees track by employee.id">
+            <td>
+                <icon class="icon {{ employee.employeeTypeName }}"
+                      uib-tooltip="{{ Language[employee.employeeTypeName] }}"
+                      tooltip-append-to-body="true"></icon>
+            </td>
+            <td>{{ employee.name }}</td>
+            <td>
+                <div class="progressBar">
+                    <div class="indicator small"
+                         ng-class="{red: employee.mood < 35, yellow: employee.mood >= 35 && employee.mood < 75, green: employee.mood >= 75}"
+                         style="width: {{ employee.mood }}%">
+                                <span class="small">
+                                {{ employee.mood | number: 0 }}%
+                            </span>
+                    </div>
+                </div>
+            </td>
+            <td class="text-right">
+                <button class="small cancel" ng-click="ctrl.showEmployee(employee)"
+                        tooltip="{{ GetLocalized('go_to_employee')}}" tooltip-append-to-body="true"><i
+                        class="fa fa-user"></i></button>
+                <button class="small" ng-disabled="employee.sendHomeDaysLeft > 0" ng-click="ctrl.sendHome(employee,1)"
+                        tooltip="{{ Language['send_home'] }}"
+                        tooltip-append-to-body="true">
+                    <i class="fa fa-home"></i>
+                    +1
+                </button>
+                <button class="small" ng-disabled="employee.sendHomeDaysLeft > 0" ng-click="ctrl.sendHome(employee,3)"
+                        tooltip="{{ Language['send_home'] }}"
+                        tooltip-append-to-body="true">
+                    <i class="fa fa-home"></i>
+                    +3
+                </button>
+            </td>
+        </tr>
+    </table>
+    </div>
+</div>

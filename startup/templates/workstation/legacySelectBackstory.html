@@ -1,0 +1,21 @@
+<div class="padding margin-top">
+    <div class="margin alert alert-danger text-center text-bold" localize="description_select_ceo_backstory"></div>
+</div>
+
+<div class="item-list flex-column">
+    <div class="item">
+        <h3 localize="headline_backstory"></h3>
+        <div class="content text-center">
+            <div class="employee-types justify-content-center">
+                <div ng-repeat="type in ctrl.employeeTypes track by type.name"
+                     class="Bg-{{type.name}}"
+                     ng-class="{ active: ctrl.task.employeeTypeName == type.name }"
+                     ng-mousedown="ctrl.setType(type.name)">
+                    <h2 localize="{{type.name}}"></h2>
+                    <i class="fa {{type.cssClass}}"></i>
+                    <div class="description" localize="{{type.name}}_description"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

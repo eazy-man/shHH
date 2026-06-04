@@ -1,0 +1,150 @@
+<div class="flex-row">
+    <div class="flex2">
+        <div class="item-list">
+            <div class="item employee-stats__stats">
+                <h3 localize="stats"></h3>
+                <div class="content">
+                    <table class="big">
+                        <tbody>
+                        <tr>
+                            <td class="dimmed width50" localize="salary"></td>
+                            <td class="text-bold">{{$root.selectedWorkstation.employee.salary | currency }}</td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed width50" localize="level"></td>
+                            <td class="text-bold">
+                                <span localize="{{ $root.selectedWorkstation.employee.level }}"></span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed width50" localize="desk"></td>
+                            <td class="text-bold">
+                                <span localize="{{ $root.selectedWorkstation.deskName }}"></span>
+                                <div class="inline" ng-if="ctrl.upgradeWorkstationAvailable"
+                                     uib-tooltip-html="ctrl.getWorkstationUpgradeTooltip()">
+                                    <button
+                                            type="button"
+                                            class="blue tiny square"
+                                            ng-disabled="$root.activeBuilding.type != 'Office'"
+                                            ng-click="ctrl.upgradeWorkstation()"
+                                            localize="change"></button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr ng-if="$root.selectedWorkstation.employee.employeeTypeName != 'ChiefExecutiveOfficer'">
+                            <td class="dimmed width50" localize="employment"></td>
+                            <td class="text-bold" localize="x_days"
+                                localize-data-days="{{ ctrl.employementDuration }}"></td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed width50">
+                                <span localize="age"></span>
+                                <tooltip text="{{ctrl.strings.employee_age_description_v2}}"></tooltip>
+                            </td>
+                            <td class="text-bold" localize="x_years" localize-data-years="{{ ctrl.ageInYears }}"></td>
+                        </tr>
+                        <tr ng-if="$root.selectedWorkstation.employee.employeeTypeName != 'ChiefExecutiveOfficer'">
+                            <td class="dimmed width50" localize="mood"></td>
+                            <td>
+                                <div class="progressBar">
+                                    <div class="indicator small"
+                                         ng-class="{red: $root.selectedWorkstation.employee.mood < 35, yellow: $root.selectedWorkstation.employee.mood >= 35 && $root.selectedWorkstation.employee.mood < 50, green: $root.selectedWorkstation.employee.mood >= 50}"
+                                         style="width: {{ $root.selectedWorkstation.employee.mood }}%">
+                        <span class="small">
+                                {{ $root.selectedWorkstation.employee.mood | number: 0 }}%
+                            </span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed width50" localize="working_hours"></td>
+                            <td>{{ ctrl.workingHoursString }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="text-center" ng-if="$root.selectedWorkstation.employee.employeeTypeName != 'ChiefExecutiveOfficer'">
+                        <hr>
+
+                        <button class="big"
+                                ng-disabled="$root.selectedWorkstation.employee.mood >= 100"
+                                ng-class="{disabled: ctrl.bonusAvailable == false}"
+                                tooltip-html="ctrl.bonusNotAvailableString"
+                                tooltip-enable="ctrl.bonusAvailable == false"
+                                tooltip-append-to-body="true"
+                                ng-click="ctrl.payBonus()">
+                            <i class="fa fa-gift"></i>
+                            <span localize="pay_bonus" localize-data-price="{{ ctrl.bonusPrice }}" localize-data-price-format="currency0"></span>
+                        </button>
+                        <div class="dimmed margin-top" localize="pay_bonus_description"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="flex2">
+        <div class="item-list">
+            <div class="item">
+                <h3 localize="demands"></h3>
+                <div class="content employee-stats__demands optimize-scroll">
+                    <table class="medium">
+                        <tbody>
+                        <tr ng-repeat="demand in ctrl.demands track by $index"
+                            ng-class="{ 'color-green': demand.fulfilled, 'color-red': !demand.fulfilled }">
+                            <td style="width: 1%">
+                                <i class="large fa" ng-class="{ 'fa-check-square': demand.fulfilled, 'fa-square-o': !demand.fulfilled }"></i>
+                            </td>
+                            <td style="width: 1%; text-align: center;">
+                                <i ng-if="demand.faIcon != null" class="fa {{ demand.faIcon }} demand-icon"></i>
+                                <img ng-if="demand.image != null" ng-src="{{demand.image}}"></td>
+                            <td>{{ demand.localized }}</td>
+                            <td>{{ demand.bonus}}%</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+            <div class="item">
+                <h3 localize="speed"></h3>
+                <div class="content employee-stats__speed">
+                    <table class="medium">
+                        <tbody>
+                        <tr>
+                            <td class="dimmed width70" localize="base_speed"></td>
+                            <td class="text-bold">{{ ctrl.speed.baseSpeed }}%</td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed" localize="demand_bonus"></td>
+                            <td class="text-bold">{{ ctrl.speed.demandBonus }}%</td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed" localize="manager_bonus"></td>
+                            <td class="text-bold">
+                                <span ng-class="{dimmed: !ctrl.speed.managerBonus.isAtWork }">{{ ctrl.speed.managerBonus.speed }}%</span>
+                                <tooltip key="manager_bonus_tip"></tooltip>
+                            </td>
+                        </tr>
+                        <tr ng-if="ctrl.speed.ceoBonus > 0">
+                            <td class="dimmed" localize="ceo_bonus"></td>
+                            <td class="text-bold">{{ ctrl.speed.ceoBonus }}%</td>
+                        </tr>
+                        <tr ng-if="$root.selectedWorkstation.employee.employeeTypeName != 'ChiefExecutiveOfficer'">
+                            <td class="dimmed" localize="mood_penalty"></td>
+                            <td class="text-bold text-red">{{ ctrl.speed.moodPenalty }}%</td>
+                        </tr>
+                        <tr class="border-top text-bold">
+                            <td class="dimmed" localize="total_speed"></td>
+                            <td>
+                                <span ng-class="{ 'color-red': ctrl.productivity < $root.selectedWorkstation.employee.speed }">{{ ctrl.speed.total }}%</span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>

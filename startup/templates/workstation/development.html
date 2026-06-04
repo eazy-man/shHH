@@ -1,0 +1,81 @@
+<div class="item-list flex-column" style="height: 100%;">
+    <div class="item">
+        <div class="content flex-row" style="justify-content: center;">
+            <ul class="queue" ng-if="ctrl.manager == null">
+                <li ng-repeat="set in ctrl.queueSets track by set.index"
+                    ng-class="{ active: $root.selectedWorkstation.employee.activeQueueIndex == set.index }"
+                    ng-click="ctrl.removeQueueSet(set.index)"
+                    ng-if="$root.selectedWorkstation.employee.queue != null">
+                    <component component="set.task.component"
+                               ng-show="set.task.component != null"
+                               class="small"
+                               disable-popover="true">
+                    </component>
+                    <div class="remove-set" ng-show="set.task.component != null">
+                        <i class="fa fa-times"></i>
+                    </div>
+                </li>
+            </ul>
+
+            <div ng-if="ctrl.manager != null"
+                 class="alert alert-info text-center width100"
+                 localize="controlled_by_manager"
+                 localize-data-manager="{{ ctrl.manager.employee.name }}"
+                 ng-click="$parent.$parent.$parent.ctrl.showManager()"></div>
+        </div>
+    </div>
+    <div class="item flex1" style="margin-top: 0;">
+
+        <div class="content">
+            <component class="hover"
+                       component="component"
+                       show-inventory-amount="true"
+                       checked="component.active"
+                       ng-repeat="component in ctrl.components | orderBy: 'order' track by component.name"
+                       popover-placement="bottom"
+                       ng-click="ctrl.clickComponent(component)"/>
+
+            <div class="alert alert-info text-center" localize="use_research_to_unlock_more"
+                 ng-click="$root.setActiveView('researchTree', 'Production')"
+                 ng-if="ctrl.components.length == 0"></div>
+        </div>
+    </div>
+
+    <div class="item" ng-if="ctrl.task != null && ctrl.task.type == null" style="margin-top: 0;">
+        <div class="content flex-row">
+            <div class="flex1 flex-column flex-super-center">
+                <component component="ctrl.task.component" disable-popover="true"></component>
+                <h4 class="text-center" localize="{{ ctrl.task.component.name }}"></h4>
+            </div>
+            <div class="flex3 flex-column">
+                <div class="alert text-center text-bold alert-danger" ng-if="ctrl.isAwaiting"
+                     localize="missing_requirements"></div>
+
+                <div class="flex-super-center" style="width: 100%; height: 100%;">
+                    <div class="progressBar big width100" ng-if="!ctrl.isAwaiting">
+                        <div class="indicator" style="width: {{ ctrl.taskProgress }}%">
+                            <span>{{ ctrl.taskProgress }}%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="margin-top width100" ng-if="ctrl.activeTaskStacks">
+                    <div>
+                        <component component="stack.component"
+                                   ng-repeat="stack in ctrl.activeTaskStacks track by stack.component.name"
+                                   ng-class="{ 'animated infinite bounce': !stack.isAvailableInInventory }"
+                                   class="small"
+                                   ng-disabled="ctrl.isAwaiting && !stack.isAvailableInInventory"
+                                   always-enabled="true"
+                                   hide-production-time="true"
+                                   show-inventory-amount="true"
+                                   stack-amount="stack.amount">
+                        </component>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

@@ -1,0 +1,40 @@
+<div class="flex-row">
+    <div class="flex1">
+        <div dropdown-select="marketPricesCtrl.employeeTypes"
+             dropdown-model="marketPricesCtrl.selectedEmployeeType"
+             dropdown-item-label="label"></div>
+    </div>
+    <div class="flex1 text-right">
+        <div class="inline-block"
+             dropdown-select="marketPricesCtrl.levels"
+             dropdown-model="marketPricesCtrl.selectedLevel"
+             dropdown-item-label="label"></div>
+    </div>
+</div>
+<div class="margin-top">
+    <table class="medium tasks" ts-wrapper>
+        <thead>
+        <tr>
+            <th></th>
+            <th ts-criteria="label" localize="name"></th>
+            <th ts-criteria="basePrice" localize="basePrice"></th>
+            <th ts-criteria="change" localize="demand"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="entry in marketPricesCtrl.components track by entry.component.name" ts-repeat ts-hide-no-data>
+            <td>
+                <component class="small" component="::entry.component" show-demand="true"></component>
+            </td>
+            <td>{{ entry.label }}</td>
+            <td>
+                {{ entry.basePrice | currency:'$':0 }}
+            </td>
+            <td>
+                <span class="{{ entry.demandColor }}">{{ entry.demand }}</span>
+                <span class="dimmed">({{ entry.change }})</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

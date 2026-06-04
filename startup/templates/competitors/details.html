@@ -1,0 +1,249 @@
+<div class="flex-row item-list" style="height: 100%;">
+    <div class="flex1">
+        <!-- Logo -->
+        <div class="flex-super-center competitor-logo">
+            <img ng-src="{{ ctrl.productInfo.product.logoPath }}" class="companyLogo">
+            <h3>{{ ctrl.productInfo.product.name }}</h3>
+        </div>
+
+        <div class="padding" style="padding-top: 0">
+            <div class="content">
+                <table class="medium">
+                    <tr>
+                        <td class="text-right dimmed" localize="total_users"></td>
+                        <td>
+                            <span ng-if="ctrl.mergeResult == null">{{ ctrl.productInfo.product.users | number: 0 }}</span>
+                            <span ng-if="ctrl.mergeResult != null" class="color-yellow"
+                                  localize="merge_in_progress"></span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="text-right dimmed" localize="marketshare"></td>
+                        <td>{{ctrl.productInfo.marketShare | number: 0 }}%</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right dimmed" localize="stock_price"></td>
+                        <td>{{ ctrl.stockPrice | currency:'$':3 }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right dimmed" localize="volume"></td>
+                        <td>{{ ctrl.productInfo.product.stockVolume | number }}</td>
+                    </tr>
+                    <tr>
+                        <td class="text-right dimmed" localize="valuation"></td>
+                        <td>{{ ctrl.valuation | currency : '$' : 0 }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div ng-if="ctrl.productInfo.product.merged == null" class="text-center">
+                <div class="padding">
+                    <canvas id="stock_price"></canvas>
+                </div>
+                <ul class="multi-toggle">
+                    <li ng-repeat="i in [7,50,150]"
+                        ng-click="ctrl.changeChartDays(i)"
+                        ng-class="{ active: ctrl.chartDays == i }"
+                        localize="x_days"
+                        localize-data-days="{{i}}"></li>
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="item flex1" ng-if="ctrl.productInfo.product.merged != true">
+        <ul class="tab-list">
+            <li class="width50" localize="trading" ng-class="{active: ctrl.tab == 'trading'}"
+                ng-click="ctrl.tab = 'trading'"></li>
+            <li class="width50" localize="acquisition" ng-class="{active: ctrl.tab =='acquisition'}"
+                ng-click="ctrl.tab = 'acquisition'"></li>
+        </ul>
+
+        <div class="content" ng-show="ctrl.tab == 'trading'">
+            <div class="shadow-box">
+                <h4 class="text-center" localize="transactions"></h4>
+                <div class="scrollbox optimize-scroll transactions">
+                    <div class="alert alert-info text-center small" ng-show="ctrl.productInfo.product.stockTransactions.length == 0" localize="no_stocks_traded"></div>
+                    <table ng-show="ctrl.productInfo.product.stockTransactions.length > 0">
+                        <thead>
+                        <tr>
+                            <th localize="day"></th>
+                            <th localize="stock_price"></th>
+                            <th localize="amount"></th>
+                            <th localize="total" class="text-right"></th>
+                        </tr>
+                        </thead>
+                        <tr ng-repeat="t in ctrl.productInfo.product.stockTransactions">
+                            <td>{{ t.day }}</td>
+                            <td>{{ t.stockPrice | currency:'$':3 }}</td>
+                            <td>{{ t.amount | number }}</td>
+                            <td class="text-right">{{ t.total | currency:'$':0}}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <table class="medium margin-top">
+                <tr>
+                    <td style="width: 50%" localize="owned_stocks"></td>
+                    <td>{{ ctrl.ownedStocks | number: 0 }} ({{ ctrl.ownership | number }}%)
+                    </td>
+                </tr>
+                <tr>
+                    <td localize="stocks_invested"></td>
+                    <td>{{ ctrl.moneyInvested | currency : '$' : 0 }}</td>
+                </tr>
+                <tr>
+                    <td localize="market_value"></td>
+                    <td>{{ ctrl.marketValue | currency : '$' : 0 }}</td>
+                </tr>
+                <tr>
+                    <td localize="stocks_return"></td>
+                    <td ng-class="{ 'color-red': ctrl.return < 0, 'color-green': ctrl.return > 0 }">{{ ctrl.return | currency : '$' : 0 }} ({{ ctrl.returnPercentage }}%)</td>
+                </tr>
+            </table>
+
+            <hr class="dark secondary">
+
+            <div class="flex-row trading-buttons" ng-show="ctrl.tradingView == null">
+                <button class="large blue" localize="button_buy_stocks" ng-click="ctrl.tradingView = 'buy'"></button>
+                <button class="large red" localize="button_sell_stocks" ng-click="ctrl.tradingView = 'sell'" ng-disabled="ctrl.ownedStocks == 0"></button>
+            </div>
+
+            <div ng-if="ctrl.tradingView != null">
+                <table>
+                    <tr ng-if="ctrl.mergeResult == null">
+                        <td style="width: 70%">
+                            <rzslider class="grey hide-bubbles" style="margin:0;" rz-slider-options="ctrl.tradingOptions[ctrl.tradingView]"
+                                      rz-slider-model="ctrl.stocksAmount"></rzslider>
+                        </td>
+                        <td class="text-right">
+                            <input class="small" ng-model="ctrl.stocksAmount" type="text">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td localize="trading_fee" localize-data-percentage="{{ctrl.tradingFeePercentage}}"></td>
+                        <td>{{ ctrl.tradingFee | currency:'$':0 }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="text-center padding-top">
+                            <button class="cancel small" ng-click="ctrl.tradingView = null" localize="cancel"></button>
+                            <button
+                                    ng-click="ctrl.tradeStocks()"
+                                    ng-disabled="ctrl.stocksAmount <= 0"
+                                    ng-class="{ blue: ctrl.tradingView == 'buy', red: ctrl.tradingView == 'sell' }"
+                                    class="small"
+                                    localize="{{ ctrl.tradingView == 'buy' ? 'buy_x' : 'sell_x' }}"
+                                    localize-data-amount-format="currency"
+                                    localize-data-amount="{{ ctrl.tradingPrice }}"></button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <table ng-if="false">
+                <tr ng-if="ctrl.mergeResult == null">
+                    <td style="width: 70%">
+                        <rzslider class="grey hide-bubbles" style="margin:0; width: 50%;" rz-slider-options="ctrl.stockBuyOptions"
+                                  rz-slider-model="ctrl.stocksToBuy"></rzslider>
+                        <input class="small" ng-model="ctrl.stocksToBuy" type="text" style="width: 40%;">
+                    </td>
+                    <td class="text-right">
+                        <button
+                                ng-click="ctrl.buyStocks()"
+                                class="small width100"
+                                ng-disabled="ctrl.stocksToBuy == 0"
+                                localize="buy_x"
+                                localize-data-amount-format="currency"
+                                localize-data-amount="{{ ctrl.stocksToBuy * ctrl.stockPrice }}"></button>
+                    </td>
+                </tr>
+                <tr ng-if="ctrl.mergeResult == null && ctrl.productInfo.product.ownedStocks > 0">
+                    <td style="width: 70%">
+                        <rzslider class="grey hide-bubbles" style="margin:0; width: 50%;" rz-slider-options="ctrl.stockSellOptions"
+                                  rz-slider-model="ctrl.stocksToSell"></rzslider>
+                        <input class="small" ng-model="ctrl.stocksToSell" type="text" style="width: 40%;">
+                    </td>
+                    <td class="text-center">
+                        <button ng-click="ctrl.sellStocks()"
+                                class="small red width100"
+                                ng-disabled="ctrl.stocksToSell == 0"
+                                localize="sell_x"
+                                localize-data-amount-format="currency"
+                                localize-data-amount="{{ ctrl.stocksToSell * ctrl.stockPrice }}">
+                        </button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="content" ng-show="ctrl.tab == 'acquisition'">
+            <div ng-if="ctrl.mergeResult == null">
+                <div class="alert alert-info margin small" localize="merging_description"></div>
+
+                <table class="medium">
+                    <tr>
+                        <td class="dimmed" localize="product"></td>
+                        <td>
+                            <div dropdown-select="ctrl.products" dropdown-model="ctrl.selectedProduct"
+                                 dropdown-item-label="name"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="dimmed" localize="current_potential_users"></td>
+                        <td>{{ ctrl.currentPotentialUsers | number }}</td>
+                    </tr>
+                    <tr>
+                        <td class="dimmed" localize="required_potential_users_to_merge"></td>
+                        <td ng-class="{'color-red': ctrl.requiredPotentialUsersToMerge > ctrl.currentPotentialUsers }">
+                            {{ ctrl.requiredPotentialUsersToMerge | number }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="dimmed" localize="duration"></td>
+                        <td localize="x_days" localize-data-days="{{ctrl.duration}}"></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="text-center">
+                            <button class="large blue margin-top" localize="start_merge" ng-click="ctrl.startMerge()"
+                                    ng-disabled="ctrl.selectedProduct == null || ctrl.selectedProduct.productTypeName != ctrl.productInfo.product.productTypeName || ctrl.ownership < 100 || ctrl.requiredPotentialUsersToMerge > ctrl.currentPotentialUsers"></button>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="alert alert-danger small margin" localize="warning_not_owner"
+                     ng-if="ctrl.selectedProduct.productTypeName == ctrl.productInfo.product.productTypeName && ctrl.ownership < 100"></div>
+                <div class="alert alert-danger small margin" localize="warning_not_enough_potential_users"
+                     ng-if="ctrl.selectedProduct.productTypeName == ctrl.productInfo.product.productTypeName && ctrl.ownership >= 100 && ctrl.requiredPotentialUsersToMerge > ctrl.currentPotentialUsers"></div>
+                <div class="alert alert-danger small margin"
+                     localize="product_type_mismatch"
+                     ng-if="ctrl.selectedProduct != null && ctrl.selectedProduct.productTypeName != ctrl.productInfo.product.productTypeName"></div>
+            </div>
+
+            <div ng-if="ctrl.mergeResult != null">
+                <h2 localize="merge_in_progress" class="text-center margin-bottom padding"></h2>
+
+                <div class="padding">
+                    <div class="progressBar big">
+                        <div class="indicator blue" style="width: {{ctrl.mergeResult.percentage }}%">
+                            <span>{{ ctrl.mergeResult.percentage }}%</span>
+                        </div>
+                    </div>
+
+                    <div class="big text-center padding">
+                        <span class="dimmed" localize="remaining_users"></span>
+                        <span class="text-bold monospaced">{{ ctrl.mergeResult.remainingUsers | number: 0 }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="item flex1 flex-super-center" ng-if="ctrl.productInfo.product.merged == true">
+        <div class="content">
+            <h2 class="padding text-center" localize="product_merged_description"
+                localize-data-productname="{{ ctrl.ProductMergedInto.name }}"></h2>
+        </div>
+    </div>
+</div>

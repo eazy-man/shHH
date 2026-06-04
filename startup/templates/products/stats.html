@@ -1,0 +1,81 @@
+<!-- Dashboard -->
+<div class="padding flex-column" style="justify-content: space-between; height: 100%;">
+    <div class="flex-row flex1">
+        <div class="flex1 product__online-users">
+            <i class="fa fa-users"></i>
+            <h3 class="dimmed" localize="right_now"></h3>
+            <h2>{{ $parent.ctrl.formatted.onlineUsers }}</h2>
+            <div class="small dimmed" localize="online_users"></div>
+
+            <div class="dimmed product__online-users__origin">
+                <span localize="new_visitors"></span>
+                <strong>{{ $parent.ctrl.formatted.marketingUsers }}</strong>
+            </div>
+
+            <div class="dimmed product__online-users__origin">
+                <span localize="change"></span>
+                <strong>
+                    <span ng-show="$parent.ctrl.productProgress.users.totalChange > 0" class="color-green">+{{ $parent.ctrl.formatted.totalChange }}</span></strong>
+                    <span ng-show="$parent.ctrl.productProgress.users.totalChange <= 0" class="color-red">{{ $parent.ctrl.formatted.totalChange }}</span></strong>
+            </div>
+
+            <!--<div class="dimmed product__online-users__origin">-->
+                <!--<span localize="conversion_rate"></span>-->
+                <!--<strong>{{ $parent.ctrl.productProgress.users.conversionRate | number: 1 }}%</strong>-->
+            <!--</div>-->
+
+        </div>
+        <div class="flex1 product__revenue">
+            <h3 class="dimmed" localize="today_income"></h3>
+            <h2>{{ $parent.ctrl.formatted.todaysIncome }} <span class="small dimmed">({{ $parent.ctrl.formatted.todaysRevenue }})</span></h2>
+            <table>
+                <tr ng-class="{ 'color-red': $parent.ctrl.productProgress.users.total >= $parent.ctrl.productProgress.users.potentialUsers }">
+                    <td class="dimmed" localize="registered_users"></td>
+                    <td class="text-bold">{{ $parent.ctrl.formatted.registeredUsers }}</td>
+                </tr>
+                <tr ng-class="{ 'color-red': $parent.ctrl.productProgress.users.total >= $parent.ctrl.productProgress.users.potentialUsers }">
+                    <td class="dimmed" localize="potential_users"></td>
+                    <td class="text-bold">{{ $parent.ctrl.formatted.potentialUsers }}</td>
+                </tr>
+                <tr>
+                    <td localize="all_expenses" class="dimmed"></td>
+                    <td class="text-bold">-{{ $parent.ctrl.formatted.allExpenses }}</td>
+                </tr>
+                <tr>
+                    <td localize="valuation" class="dimmed"></td>
+                    <td class="text-bold">{{ $parent.ctrl.formatted.valuation }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="flex1 product__hosting">
+            <h3 class="dimmed text-center" localize="server_usage"></h3>
+            <div class="server-gauge">
+                <canvas id="server-gauge" style="height: 150px;"></canvas>
+                <div class="indicator"></div>
+            </div>
+
+            <div class="text-center dimmed" style="margin-top: -10px">
+                <span localize="response_time"></span>
+                <br>
+                <span class="monospaced text-bold" ng-class="{
+                'color-red': $parent.ctrl.productProgress.stats.performance.state == 'Critical',
+                'color-yellow': $parent.ctrl.productProgress.stats.performance.state == 'Unstable',
+                'color-green': $parent.ctrl.productProgress.stats.performance.state == 'Stable'
+             }">{{$parent.ctrl.productProgress.stats.performance.responseTime > 9999 ? '>9999' : $parent.ctrl.productProgress.stats.performance.responseTime}}ms</span></div>
+        </div>
+    </div>
+    <hr>
+
+    <div class="flex-row flex1">
+        <div class="flex1">
+            <h4 class="text-center" style="margin-top: 0" localize="online_users"></h4>
+            <canvas id="online_users" ng-if="!statsCtrl.hideCharts"></canvas>
+            <div ng-if="statsCtrl.hideCharts" class="alert alert-info margin text-center" localize="not_enough_data"></div>
+        </div>
+        <div class="flex1">
+            <h4 class="text-center" style="margin-top: 0" localize="registered_users"></h4>
+            <canvas id="registered_users" ng-if="!statsCtrl.hideCharts"></canvas>
+            <div ng-if="statsCtrl.hideCharts" class="alert alert-info margin text-center" localize="not_enough_data"></div>
+        </div>
+    </div>
+</div>

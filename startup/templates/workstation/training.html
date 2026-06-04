@@ -1,0 +1,35 @@
+<div class="padding text-center">
+    <p class="alert alert-info" localize="tip_training" ng-if="$root.selectedWorkstation.employee.level != 'Expert'"></p>
+
+    <h3 localize="speed"></h3>
+    <div class="flex-row" style="align-items:center">
+        <div class="flex1" localize="{{$root.selectedWorkstation.employee.level}}"></div>
+        <div class="progressBar big flex4">
+            <div class="indicator blue" style="width: {{ $root.selectedWorkstation.employee.speed * 100 / $root.selectedWorkstation.employee.maxSpeed }}%">
+                <span>
+                    <strong>{{ $root.selectedWorkstation.employee.speed | floor }}%</strong>
+                    <span>({{ $root.selectedWorkstation.employee.maxSpeed | number: 0}}%)</span>
+                </span>
+            </div>
+        </div>
+        <div class="flex1">{{ trainingCtrl.nextLevelString }}</div>
+    </div>
+
+
+    <div class="padding margin-top">
+        <button class="big"
+                ng-if="!trainingCtrl.upgradeReady && !trainingCtrl.hideStartTraining"
+                ng-click="trainingCtrl.switchTraining()"
+                localize="{{ $root.selectedWorkstation.employee.isTraining ? 'stop_training' : 'start_training' }}" ng-class="{
+            blue: !$root.selectedWorkstation.employee.isTraining,
+            red: $root.selectedWorkstation.employee.isTraining
+        }"></button>
+
+        <button class="big margin-top"
+                ng-if="trainingCtrl.upgradeReady"
+                ng-click="trainingCtrl.upgrade()">
+            <i class="fa fa-arrow-circle-o-up"></i>
+            <span localize="upgrade"></span>
+        </button>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+<div class="component-box"
+     ng-disabled="::disabled"
+     popover-enable="!disablePopover"
+     uib-popover-html="popoverContent"
+     popover-trigger="mouseenter"
+     popover-append-to-body="true"
+     popover-placement="{{::popoverPlacement}}"
+     popover-title="{{ ::popoverHeader}}"
+     ng-class="{ 'selected': checked, 'tier-locked': locked }"
+     ng-click="cancelClick($event)">
+    <img ng-src="{{ component.icon }}">
+
+    <i ng-if="checked" class="checked fa fa-check-circle"></i>
+    <div class="progress" ng-if="developmentProgress != null" style="width: {{ developmentProgress}}%">
+        {{ developmentProgress }}%
+    </div>
+</div>
+<div class="stackAmount" ng-if="stackAmount != null || showInventoryAmount" ng-class="{ 'red': stackAmount != null && stackAmount > inventoryAmount }">
+    <span class="text-bold">{{ stackAmount != null ? stackAmount : inventoryAmount }}</span>
+    <span ng-if="stackAmount != null && inventoryAmount != null">({{ inventoryAmount }})</span>
+</div>
+<div ng-if="showDemand" class="demand {{demand}}"></div>

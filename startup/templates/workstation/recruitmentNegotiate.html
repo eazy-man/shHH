@@ -1,0 +1,189 @@
+<div class="flex-row item-list" style="height: 100%;">
+    <div class="flex-column flex1">
+        <div class="item flex1" style="margin-right: 0; margin-bottom: 0">
+            <h3>{{ ctrl.candidate.name }}</h3>
+            <div class="content">
+                <table>
+                    <tr>
+                        <td>
+                            <div class="avatar-image"
+                                 style="background-image: url('assets/people/{{ ::$parent.ctrl.candidate.avatar }}.png')"></div>
+                        </td>
+                        <td>
+                            <span localize="employee_type_working_at"
+                                  localize-data-employeetype="{{ $parent.ctrl.strings[ctrl.candidate.employeeTypeName] }}"
+                                  localize-data-company="{{ ctrl.competitorProduct.name}}"
+                                  localize-data-level="{{ $parent.ctrl.strings[ctrl.candidate.level] }}"></span>
+                            <br>
+                            <span localize="x_years_old" localize-data-years="{{ ctrl.ageInYears}}"></span>
+                            <tooltip key="employee_age_description"></tooltip>
+                        </td>
+                    </tr>
+                </table>
+
+                <div class="info-boxes">
+                    <div class="shadow-box">
+                        <span localize="speed"></span>
+                        <div>{{ ctrl.candidate.speed }}% <span class="dimmed">({{ ctrl.candidate.maxSpeed }}%)</span>
+                        </div>
+                    </div>
+                    <div class="shadow-box">
+                        <span localize="salary_expectation"></span>
+                        <div ng-if="ctrl.candidate.researchSalary">{{ ctrl.candidate.salary | currency:'$':0 }}</div>
+                        <div ng-if="!ctrl.candidate.researchSalary" localize="na"></div>
+                    </div>
+                    <div class="shadow-box"
+                         popover-trigger="mouseenter"
+                         popover-enable="ctrl.candidate.researchDemands"
+                         popover-append-to-body="true"
+                         popover-placement="right"
+                         uib-popover-html="ctrl.demandsPopover"
+                         popover-title="{{ ctrl.strings.demands }}">
+                        <span localize="demands"></span>
+                        <div ng-if="ctrl.candidate.researchDemands">{{ ctrl.candidate.demands.length }} <i class="fa fa-info-circle"></i>
+                        </div>
+                        <div ng-if="!ctrl.candidate.researchDemands" localize="na"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="item flex1" style="margin-right: 0"
+             ng-class="{'disable-container': ctrl.candidate.negotiation.completed || ctrl.hideLastOffer }">
+            <h3 localize="send_offer"></h3>
+            <div class="content">
+                <div class="alert alert-danger" ng-if="!ctrl.hiringResult.interested" ng-bind-html="ctrl.hiringResult.label"></div>
+                <table class="text-center" ng-if="ctrl.hiringResult.interested" style="margin: auto;">
+                    <tr>
+                        <td>
+                            <span localize="monthly_salary"></span>:
+                            <strong class="monospaced">{{ ctrl.candidate.negotiation.salary | currency:'$':0 }}</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <i class="fa fa-minus-circle" ng-mousedown="ctrl.changeValue('salary', -100)"></i>
+                            <input type="range" class="secondary-color" ng-model="ctrl.candidate.negotiation.salary"
+                                   value="0"
+                                   id="salary-range"
+                                   step="100"
+                                   min="0"
+                                   style="width: 60%"
+                                   max="{{ ctrl.maxSalary }}">
+                            <i class="fa fa-plus-circle" ng-mousedown="ctrl.changeValue('salary', 100)"></i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span localize="signing_bonus"></span>:
+                            <strong class="monospaced">{{ ctrl.candidate.negotiation.signingBonus | currency:'$':0 }}</strong>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <i class="fa fa-minus-circle" ng-mousedown="ctrl.changeValue('signingBonus', -1000)"></i>
+                            <input type="range" class="secondary-color"
+                                   ng-model="ctrl.candidate.negotiation.signingBonus"
+                                   id="signingBonus-range"
+                                   value="0" step="1000"
+                                   min="0"
+                                   style="width: 60%"
+                                   max="{{ ctrl.maxSigningBonus }}">
+                            <i class="fa fa-plus-circle" ng-mousedown="ctrl.changeValue('signingBonus', 1000)"></i>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2" class="text-center">
+                            <button localize="send_offer" class="small margin-top"
+                                    ng-mousedown="ctrl.sendOffer()"></button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="item flex1">
+        <h3 localize="negotiation"></h3>
+        <div class="content">
+            <div class="conversation">
+                <div class="line">
+                    <div class="image">
+                        <div class="avatar-image tiny"
+                             style="background-image: url('assets/people/{{ ::ctrl.candidate.avatar }}.png')"></div>
+                    </div>
+                    <span localize="recruitment_negotiation_awaiting"
+                          localize-data-name="{{ctrl.candidate.name}}"></span>
+                </div>
+
+                <div ng-repeat="offer in ctrl.candidate.negotiation.offers track by offer.id">
+                    <div ng-if="offer.fromCandidate && (ctrl.hideLastOffer == false || (ctrl.hideLastOffer && !$last))">
+
+                        <div class="line" ng-class="{ accepted: offer.accepted }">
+                            <div class="image">
+                                <div class="avatar-image tiny"
+                                     style="background-image: url('assets/people/{{ ::ctrl.candidate.avatar }}.png')"></div>
+                            </div>
+                            <span ng-if="!offer.accepted">
+                                <span localize="recruitment_negotiation_counter_offer"
+                                      localize-data-name="{{ctrl.candidate.name}}"
+                                      localize-data-salary="{{offer.total}}" localize-data-salary-format="currency1"
+                                ></span>
+                                <span ng-if="$last && !ctrl.candidate.negotiation.completed">
+                                    <br>
+                                    <button class="tiny" localize="accept_offer"
+                                            ng-click="ctrl.acceptOffer(offer)"></button>
+                                </span>
+                            </span>
+                            <span ng-if="offer.accepted" localize="recruitment_negotiation_accepted_offer"
+                                  localize-data-name="{{ctrl.candidate.name}}"
+                                  localize-data-salary="{{ctrl.candidate.negotiation.salary}}"
+                                  localize-data-salary-format="currency0"
+                                  localize-data-bonus="{{ctrl.candidate.negotiation.signingBonus}}"
+                                  localize-data-bonus-format="currency0"></span>
+                            <div ng-if="!offer.accepted" class="smiley small"
+                                 ng-class="{ moody: offer.mood <= 50 && offer.mood > 25, sad: offer.mood <= 25 }"
+                                 tooltip="{{offer.mood}}%"></div>
+                        </div>
+                    </div>
+
+                    <div class="line offer" ng-if="!offer.fromCandidate"
+                         localize="recruitment_negotiation_you_offered"
+                         localize-data-salary="{{offer.salary}}" localize-data-salary-format="currency0"
+                         localize-data-bonus="{{offer.signingBonus}}" localize-data-bonus-format="currency0">
+                    </div>
+
+                    <div class="line typing" ng-if="ctrl.hideLastOffer && $last">
+                        <div class="image">
+                            <div class="avatar-image tiny"
+                                 style="background-image: url('assets/people/{{ ::ctrl.candidate.avatar }}.png')"></div>
+                        </div>
+                        <span>
+                            <img src="images/typing.svg" class="typing-icon">
+                        </span>
+                    </div>
+                </div>
+
+                <div class="line customerLeft"
+                     ng-if="ctrl.candidate.negotiation.candidateLeft && ctrl.hideLastOffer == false">
+                    <div class="image">
+                        <div class="avatar-image tiny"
+                             style="background-image: url('assets/people/{{ ::ctrl.candidate.avatar }}.png')"></div>
+                    </div>
+                    <span localize="recruitment_negotiation_left"
+                          localize-data-name="{{ctrl.candidate.name}}"></span>
+                    <div class="smiley small sad"></div>
+                </div>
+
+                <div class="line offer accepted" ng-if="ctrl.candidate.negotiation.acceptedCandidateOffer">
+                    <span class="width100" localize="recruitment_negotiation_accepted_candidate_offer"
+                          localize-data-name="{{ctrl.candidate.name}}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="cancel-bar">
+    <button class="blue" ng-mousedown="$parent.$parent.ctrl.candidate = null;" localize="back"></button>
+</div>

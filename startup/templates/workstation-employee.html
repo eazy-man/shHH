@@ -1,0 +1,129 @@
+<h1>
+    <div class="employee-cycle-controls" ng-if="$root.settings.employeesOrder.length > 1">
+        <i class="fa fa-caret-square-o-left" ng-click="ctrl.cycleEmployees(-1)"></i>
+        <i class="fa fa-caret-square-o-right" ng-click="ctrl.cycleEmployees(1)"></i>
+    </div>
+
+    <div class="text-hover-blue inline">
+        <icon class="{{$root.selectedWorkstation.employee.employeeTypeName }}"></icon>
+        <i class="fa fa-star color-yellow" ng-if="$root.selectedWorkstation.employee.superstar" tooltip-append-to-body="true" tooltip="{{ctrl.strings.superstar_employee}}"></i>
+        <input type="text" ng-model="$root.selectedWorkstation.employee.name" maxlength="20">
+    </div>
+
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+
+    <div class="pull-right label-row">
+        <span class="{{$root.selectedWorkstation.employee.employeeTypeName}}">
+            <icon class="{{ $root.selectedWorkstation.employee.employeeTypeName }}"></icon>
+            <b localize="{{$root.selectedWorkstation.employee.employeeTypeName}}"></b>
+        </span>
+        <span uib-tooltip="{{Language['total_speed']}}" tooltip-append-to-body="true">
+            <icon class="fa fa-tachometer padding0"></icon>
+            {{ ctrl.employeeProductivity | number: 0 }}%
+        </span>
+        <span>{{ctrl.employeeStat.label}}</span>
+        <span class="color-green" ng-if="$root.selectedWorkstation.employee.sendHomeDaysLeft > 0" localize="returns_in_days"
+              localize-data-days="{{$root.selectedWorkstation.employee.sendHomeDaysLeft}}"></span>
+    </div>
+</h1>
+
+<ul class="tab-list width100">
+
+    <li ng-class="{ active: ctrl.tab == 'outsourcing' }" ng-if="ctrl.tabPermissions.outsourcing" ng-mousedown="ctrl.tab = 'outsourcing'" localize="outsourcing"></li>
+    <li ng-class="{ active: ctrl.tab == 'recruitment' }" ng-if="ctrl.tabPermissions.recruitment" ng-mousedown="ctrl.tab = 'recruitment'" localize="recruitment"></li>
+    <li ng-class="{ active: ctrl.tab == 'research' }" ng-if="ctrl.tabPermissions.research" ng-mousedown="ctrl.tab = 'research'" localize="research"></li>
+    <li ng-class="{ active: ctrl.tab == 'development' }" ng-if="ctrl.tabPermissions.development" ng-mousedown="ctrl.tab = 'development'" localize="development"></li>
+    <li ng-class="{ active: ctrl.tab == 'adspaces' }" ng-if="ctrl.tabPermissions.adspaces" ng-mousedown="ctrl.tab = 'adspaces'" localize="contracts"></li>
+    <li ng-class="{ active: ctrl.tab == 'supporter' }" ng-if="ctrl.tabPermissions.supporter" ng-mousedown="ctrl.tab = 'supporter'" localize="supporter"></li>
+    <li ng-class="{ active: ctrl.tab == 'manager' }" ng-if="ctrl.tabPermissions.manager" ng-mousedown="ctrl.tab = 'manager'" localize="employees"></li>
+    <li ng-class="{ active: ctrl.tab == 'production' }" ng-if="ctrl.tabPermissions.production" ng-mousedown="ctrl.tab = 'production'" localize="production"></li>
+    <li ng-class="{ active: ctrl.tab == 'hrmanager' }" ng-if="ctrl.tabPermissions.hrmanager" ng-mousedown="ctrl.tab = 'hrmanager'" localize="team"></li>
+    <li ng-class="{ active: ctrl.tab == 'schedule' }" ng-if="ctrl.tabPermissions.schedule" ng-mousedown="ctrl.tab = 'schedule'" localize="management"></li>
+    <li ng-class="{ active: ctrl.tab == 'changeskill' }" ng-click="ctrl.tab = 'changeskill'" class="change-skill"
+        ng-if="$root.selectedWorkstation.employee.employeeTypeName == 'ChiefExecutiveOfficer'">
+        <button class="small blue"
+                tooltip-append-to-body="true"
+                uib-tooltip="{{ ctrl.strings.change_ceo_role }}"><i class="fa fa-refresh"></i></button>
+    </li>
+    <li ng-class="{ active: ctrl.tab == 'training'}" ng-if="ctrl.tabPermissions.training" ng-mousedown="ctrl.tab = 'training' " localize="training"></li>
+    <li ng-class="{ active: (ctrl.tab == 'stats' || ctrl.tab == 'upgrade-workstation')}" ng-if="ctrl.tabPermissions.stats" ng-mousedown="ctrl.tab = 'stats' " localize="stats"></li>
+    <li ng-class="{ active: (ctrl.tab == 'retirement' || ctrl.tab == 'retirement')}" ng-if="ctrl.tabPermissions.retirement" ng-mousedown="ctrl.tab = 'retirement' "
+        localize="retirement"></li>
+</ul>
+
+<div class="action-menu">
+    <button class="small yellow"
+            ng-if="ctrl.manager"
+            ng-click="ctrl.showManager()"
+            tooltip-append-to-body="true"
+            uib-tooltip="{{ ctrl.strings.go_to_manager }}"><i class="fa fa-list-ol"></i></button>
+
+    <button class="small cancel" ng-click="ctrl.moveWorkstation()" tooltip-append-to-body="true" ng-disabled="$root.activeBuilding.type != 'Office'"
+            uib-tooltip="{{ ctrl.strings.move_workstation }}"><i class="fa fa-arrows"></i></button>
+    <button class="small" ng-disabled="$root.selectedWorkstation.employee.sendHomeDaysLeft > 0"
+            ng-click="ctrl.sendHome(1)" tooltip-append-to-body="true"
+            uib-tooltip="{{ ctrl.strings.send_home }}"><i class="fa fa-home"></i>+1
+    </button>
+    <button class="small" ng-disabled="$root.selectedWorkstation.employee.sendHomeDaysLeft > 0"
+            ng-click="ctrl.sendHome(3)" tooltip-append-to-body="true"
+            uib-tooltip="{{ctrl.strings.send_home }}"><i class="fa fa-home"></i>+3
+    </button>
+    <button class="small blue" ng-click="ctrl.detachFromWorkstation()" tooltip-append-to-body="true"
+            uib-tooltip="{{ ctrl.strings.remove_from_desk }}"><i class="fa fa-sign-out"></i></button>
+    <button class="small red" ng-click="ctrl.dismiss()" tooltip-append-to-body="true"
+            ng-class="{ disabled: ctrl.dismissDisabled }"
+            ng-if="$root.selectedWorkstation.employee.employeeTypeName != 'ChiefExecutiveOfficer'"
+            uib-tooltip-html="ctrl.dismissTooltip"><i class="fa fa-fire"></i></button>
+</div>
+
+
+<!-- Development -->
+<workstation-development class="tab-content" ng-if="ctrl.tab == 'development'"></workstation-development>
+
+<!-- Manager -->
+<workstation-manager class="tab-content" ng-if="ctrl.tab == 'manager'"></workstation-manager>
+
+<!-- Manager: Production -->
+<workstation-manager-production class="tab-content" ng-if="ctrl.tab == 'production'"></workstation-manager-production>
+
+<!-- HR Manager -->
+<workstation-hr-manager class="tab-content optimize-scroll" ng-if="ctrl.tab == 'hrmanager'"></workstation-hr-manager>
+
+<!-- HR Manager: Schedule -->
+<workstation-hr-manager-schedule class="tab-content" ng-if="ctrl.tab == 'schedule'"></workstation-hr-manager-schedule>
+
+<!-- Sales Executive -->
+<workstation-sales-executive-contracts class="tab-content" ng-if="ctrl.tab == 'contracts'"></workstation-sales-executive-contracts>
+
+<!-- Sales Executive -->
+<workstation-sales-executive-ad-spaces class="tab-content" ng-if="ctrl.tab == 'adspaces'"></workstation-sales-executive-ad-spaces>
+
+<!-- Researcher-->
+<workstation-research class="tab-content" ng-if="ctrl.tab == 'research'"></workstation-research>
+
+<!-- Upgrade Workstation -->
+<workstation-upgrade-workstation class="tab-content" ng-if="ctrl.tab == 'upgrade-workstation'"></workstation-upgrade-workstation>
+
+<!-- Marketer -->
+<workstation-marketer class="tab-content" ng-if="ctrl.tab == 'marketer'"></workstation-marketer>
+
+<!-- Training -->
+<workstation-training class="tab-content" ng-if="ctrl.tab == 'training'"></workstation-training>
+
+<!-- Training -->
+<workstation-supporter class="tab-content" ng-if="ctrl.tab == 'supporter'"></workstation-supporter>
+
+<!-- Stats -->
+<workstation-stats class="tab-content" ng-if="ctrl.tab == 'stats'"></workstation-stats>
+
+<!-- Recruitment -->
+<workstation-recruitment class="tab-content" ng-if="ctrl.tab == 'recruitment'"></workstation-recruitment>
+
+<!-- Outsourcing Executive -->
+<workstation-outsourcing-executive class="tab-content" ng-if="ctrl.tab == 'outsourcing'"></workstation-outsourcing-executive>
+
+<!-- Retirement -->
+<workstation-retirement class="tab-content" ng-if="ctrl.tab == 'retirement'"></workstation-retirement>
+
+<!-- Change Skill (CEO) -->
+<workstation-change-skill class="tab-content" ng-if="ctrl.tab == 'changeskill'"></workstation-change-skill>

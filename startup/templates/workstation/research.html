@@ -1,0 +1,34 @@
+<div class="padding text-center">
+    <p class="alert alert-info" localize="researcher_info"></p>
+
+    <div class="text-center points-container shadow-box">
+        <div class="dimmed text-bold" localize="total_research_points"></div>
+        <div class="text-bold">{{ $root.settings.researchPoints | number }}</div>
+    </div>
+
+    <div class="progressBar big">
+        <div class="indicator blue"
+             ng-class="{ 'animated infinite pulse': $root.selectedWorkstation.employee.isTraining }"
+             style="width: {{ ctrl.percentageCompleted }}%">
+                <span>
+                    <strong>{{ ctrl.percentageCompleted  | number: 1}}%</strong>
+                </span>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <table style="width: auto; display: inline-table" class="big text-left">
+            <tr>
+                <td class="dimmed" localize="generated_per_hour"></td>
+                <td class="text-bold">{{ ctrl.pointsPerHour | number: 2 }}</td>
+            </tr>
+            <tr>
+                <td class="dimmed" localize="generated_per_day"></td>
+                <td>
+                    <span class="text-bold">{{ ctrl.pointsPerDay | number: 2 }}</span>
+                     (<span localize="x_hours" localize-data-hours="{{ ctrl.totalHours }}"></span>)
+                </td>
+            </tr>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,14 @@
+<h1>
+    <span><i class="fa fa-th"></i> <span localize="inventory"></span></span>
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<ul class="tab-list" style="width: 100%; display: inline-block;">
+    <li ng-class="{ active: ctrl.tab == 'list' }" ng-click="ctrl.tab = 'list'" localize="inventory"></li>
+    <li ng-class="{ active: ctrl.tab == 'plans' }" ng-click="ctrl.tab = 'plans'" localize="production_plans"></li>
+</ul>
+
+<div class="tab-content optimize-scroll">
+    <list ng-if="ctrl.tab == 'list'"></list>
+    <production-plans ng-if="ctrl.tab == 'plans'"></production-plans>
+</div>

@@ -1,0 +1,17 @@
+<div class="flex-column">
+    <div class="website-name">
+        <img ng-src="{{ logoCtrl.logo.url }}" class="website-logo">
+        <input type="text" ng-model="logoCtrl.name" restrict-to="[a-zA-Z0-9/\s]+" maxlength="20">
+    </div>
+    <hr class="big">
+    <div  class="logo-picker">
+        <img ng-repeat="logo in logoCtrl.logos" ng-src="{{logo.url}}"
+             class="website-logo"
+             ng-mousedown="logoCtrl.logo = logo">
+    </div>
+    <hr class="big">
+    <div class="text-center">
+        <button localize="save" class="big" ng-click="logoCtrl.save();"></button>
+        <button localize="cancel" class="big cancel" ng-click="logoCtrl.cancel();"></button>
+    </div>
+</div>

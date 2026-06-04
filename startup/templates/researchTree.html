@@ -1,0 +1,136 @@
+<h1>
+    <i class="fa fa-flask"></i>
+    <span localize="research"></span>
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<div class="flex-row" style="height: 100%">
+    <div class="flex1">
+        <h3 class="text-center available-research-points">
+            {{$root.settings.researchPoints}}
+            <div class="small dimmed" localize="total_research_points"></div>
+        </h3>
+        <ul class="left-tabs">
+            <li ng-repeat="category in ctrl.categories track by category.name"
+                ng-click="ctrl.changeCategory(category.name)"
+                ng-class="{ active: category.name == ctrl.selectedCategory }">
+                <i class="fa {{ category.faIcon }}"></i>
+                <span class="text-center">{{ category.localized }}</span>
+            </li>
+        </ul>
+    </div>
+    <div class="flex3" style="height: 100%; overflow-y: scroll" id="research-items">
+        <div class="item-list">
+            <div class="item" ng-repeat="item in ctrl.items track by item.name" ng-class="{ green: item.researched }">
+                <h3 class="text-left">
+                    <i class="fa {{item.feature.faIcon}}" ng-if="item.feature != null" ></i>
+                    {{ item.localized }}
+                    <i class="feature-type pull-right fa {{ item.feature.categoryName == 'Revenue' ? 'fa-money' : 'fa-users' }}" ng-if="item.feature != null" ></i>
+                </h3>
+
+                <div class="alert alert-danger small text-center margin"
+                     ng-if="item.missingInvestmentProject"
+                     localize="research_investment_project_required"
+                     localize-data-investmentproject="{{ ctrl.strings[item.requiredInvestmentProject]}}"></div>
+
+                <div class="content flex-row width100">
+                    <div class="flex1 item-icon" ng-if="item.furniture == null && item.benefits == null && item.devices == null">
+                        <i ng-if="item.faIcon != null" class="fa {{ item.faIcon }} {{ item.name}}"></i>
+                        <img ng-if="item.framework != null" ng-src="{{item.framework.logoPath}}">
+                        <img ng-if="item.feature != null" ng-src="images/featureScreenshots/{{item.name | lowercase }}.png" class="feature-image">
+                    </div>
+                    <div class="flex5">
+                        <div class="description" ng-if="item.framework == null && item.furniture == null && item.benefits == null">
+                            {{ item.description }}
+                        </div>
+
+                        <div class="unlocks requirements" ng-if="item.stacks != null">
+                            <component component="::stack.component"
+                                       stack-amount="::stack.amount"
+                                       class="small"
+                                       always-enabled="true"
+                                       ng-repeat="stack in item.stacks track by stack.component.name">
+                            </component>
+                        </div>
+
+                        <div ng-if="item.feature != null">
+                            <div class="label-row">
+                                <span localize="{{productType}}" ng-repeat="productType in item.productTypes track by productType"></span>
+                            </div>
+                        </div>
+
+                        <div class="unlocks shadow-box" ng-if="item.unlocks != null">
+                            <component class="small" ng-if="item.components != null"
+                                       always-enabled="true"
+                                       ng-repeat="component in item.components track by component.name"
+                                       component="component"></component>
+
+                            <img ng-src="{{ furniture.url }}" ng-if="item.furniture != null"
+                                 ng-repeat="furniture in item.furniture track by furniture.url"
+                                 uib-popover-html="furniture.popoverText"
+                                 popover-trigger="mouseenter"
+                                 popover-append-to-body="true"
+                                 popover-title=" {{ furniture.localized }}" />
+
+                            <div ng-if="item.benefits != null"
+                                 class="benefit-icon"
+                                 uib-popover-html="benefit.popoverText"
+                                 popover-trigger="mouseenter"
+                                 popover-append-to-body="true"
+                                 popover-title=" {{ benefit.localized }}"
+                                 ng-repeat="benefit in item.benefits track by benefit.name">
+                                <i class="fa {{ benefit.faIcon }}"></i>
+                            </div>
+
+                            <div class="rackdevices-container" ng-if="item.devices != null">
+                                <div class="{{ device.name }}"
+                                     uib-popover-html="device.popoverText"
+                                     popover-trigger="mouseenter"
+                                     popover-append-to-body="true"
+                                     popover-title=" {{ device.localized }}"
+                                     ng-repeat="device in item.devices track by device.name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="shadow-box padding" ng-if="item.framework != null">
+                            <table class="small">
+                                <tr>
+                                    <td localize="license_cost"></td>
+                                    <td class="text-bold">{{ item.framework.licenseCost | currency : '$': 0 }}</td>
+                                </tr>
+                                <tr>
+                                    <td localize="price_per_user"></td>
+                                    <td class="text-bold">{{ item.framework.pricePerUser | currency:'$':5 }}</td>
+                                </tr>
+                                <tr>
+                                    <td localize="cu_per_ms"></td>
+                                    <td class="text-bold">{{ item.framework.cuPerMs | number: 2 }}</td>
+                                </tr>
+                                <tr>
+                                    <td localize="max_features"></td>
+                                    <td class="text-bold">{{ item.framework.maxFeatures }}</td>
+                                </tr>
+                                <tr>
+                                    <td localize="max_feature_level"></td>
+                                    <td class="text-bold">{{ item.framework.maxFeatureLevel }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="flex2 text-center actions">
+                        <h4>
+                            <span localize="rp" class="dimmed"></span> {{ item.points | number }}
+                            <i class="fa fa-check checkmark" ng-if="item.researched == true"></i>
+                        </h4>
+
+                        <button localize="unlock"
+                                ng-click="ctrl.unlock(item)"
+                                ng-if="item.researched == false"
+                                ng-disabled="!item.available || $root.settings.researchPoints < item.points"
+                        ></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

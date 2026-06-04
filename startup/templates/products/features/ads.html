@@ -1,0 +1,101 @@
+<div class="alert alert-info margin small" localize="timeslots_description"></div>
+<div class="item-list">
+    <div class="item" ng-repeat="timeSlot in featuresAdsCtrl.selectedFeatureTimeSlots track by timeSlot.id">
+        <h3 class="text-left">
+            <span localize="timeslot_x" localize-data-number="{{$index+1}}"></span>
+            - {{ timeSlot.friendlyName }} (<span localize="x_hours"
+                                                 localize-data-hours="{{timeSlot.totalHours }}"></span>)
+            <button class="tiny blue" localize="change" ng-click="featuresAdsCtrl.showTimeslotChange(timeSlot)"></button>
+            <div class="pull-right">
+                <i class="fa fa-eye"></i>
+                {{ timeSlot.yesterdaysImpressions | number }}
+            </div>
+        </h3>
+
+        <!-- Timeslot details -->
+        <div class="content flex-row" ng-show="timeSlot.view == null">
+            <div class="flex4">
+                <div class="alert alert-danger small text-center" localize="no_contract_warning"
+                     ng-if="timeSlot.contract == null"></div>
+
+                <table ng-if="timeSlot.contract != null">
+                    <tr>
+                        <td class="text-bold" localize="contract_number"
+                            localize-data-number="{{ timeSlot.contract.number }}"></td>
+                        <td ng-class="{ 'color-red': timeSlot.progress < 100, 'color-green': timeSlot.progress >= 100 }">
+                            <i class="fa fa-eye"></i> {{ timeSlot.contract.guaranteedImpressions | number: 0 }}
+                            ({{timeSlot.progress}}%)
+                        </td>
+                        <td>
+                            <div class="progressBar"
+                                 ng-if="timeSlot.contract.startDay <= $root.daysPlayed">
+                                <div class="indicator blue small"
+                                     style="width: {{ timeSlot.lengthProgress }}%">
+                                                        <span>{{ timeSlot.daysCompleted }} / <span localize="x_days"
+                                                                                                   localize-data-days="{{timeSlot.contract.length}}"></span></span>
+                                </div>
+                            </div>
+                            <span ng-if="timeSlot.contract.startDay > $root.daysPlayed"
+                                  localize="starts_tomorrow"></span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="flex2 text-right">
+                <button class="small blue margin-bottom" localize="go_to_employee"
+                        ng-if="timeSlot.contract != null"
+                        ng-click="featuresAdsCtrl.goToEmployee(timeSlot.contract)"></button>
+                <button class="small red" localize="delete"
+                        ng-click="featuresAdsCtrl.deleteTimeSlot(timeSlot)"></button>
+            </div>
+        </div>
+
+        <!-- Change timeslot -->
+        <div class="content flex-row" ng-show="timeSlot.view == 'change'">
+            <div class="padding flex4">
+                <rzslider class="grey" rz-slider-model="timeSlot.newTime.slider.minValue"
+                          rz-slider-high="timeSlot.newTime.slider.maxValue"
+                          rz-slider-options="timeSlot.newTime.slider.options"></rzslider>
+                <div class="text-center margin-bottom"><i class="fa fa-eye"></i> {{
+                    timeSlot.newTime.impressions | number }}
+                </div>
+                <div class="alert alert-danger text-center small" ng-show="timeSlot.newTime.blocked"
+                     localize="timeslot_blocked_warning"></div>
+            </div>
+            <div class="flex1 text-right">
+                <button class="blue" localize="save" ng-click="featuresAdsCtrl.updateTimeslot(timeSlot)"
+                        ng-disabled="timeSlot.newTime.blocked"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add new timeslot -->
+    <table>
+        <tr>
+            <td colspan="3">
+                <hr class="dark big">
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <div class="flex-row">
+                    <div class="padding flex4">
+                        <rzslider class="grey" rz-slider-model="featuresAdsCtrl.newTimeSlot.newTime.slider.minValue"
+                                  rz-slider-high="featuresAdsCtrl.newTimeSlot.newTime.slider.maxValue"
+                                  rz-slider-options="featuresAdsCtrl.newTimeSlot.newTime.slider.options"></rzslider>
+                        <div class="text-center margin-bottom"><i class="fa fa-eye"></i> {{
+                            featuresAdsCtrl.newTimeSlot.newTime.impressions | number }}
+                        </div>
+                        <div class="alert alert-danger text-center small" ng-show="featuresAdsCtrl.newTimeSlot.newTime.blocked"
+                             localize="timeslot_blocked_warning"></div>
+                    </div>
+                    <div class="flex1 text-right">
+                        <button class="blue" localize="add_timeslot" ng-click="featuresAdsCtrl.addTimeslot()"
+                                ng-disabled="featuresAdsCtrl.newTimeSlot.newTime.blocked"></button>
+                    </div>
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>

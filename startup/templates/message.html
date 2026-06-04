@@ -1,0 +1,16 @@
+<div class="dialog">
+    <div class="text-center">
+        <img ng-src="{{ Message.image }}" ng-if="Message.image" class="margin-bottom image">
+
+        <p ng-bind-html="Message.body"></p>
+
+        <div style="margin-top: 20px;">
+            <button class="cancel" ng-click="ctrl.click(!Message.isConfirm && Message.callback)" id="cancel-button">
+                <span ng-if="Message.isConfirm" localize="cancel"></span>
+                <span ng-if="!Message.isConfirm" localize="close"></span>
+            </button>
+                <button ng-if="Message.isConfirm" ng-click="ctrl.click(true)" id="confirm-button"
+                        localize="confirm"></button>
+        </div>
+    </div>
+</div>

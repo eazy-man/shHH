@@ -1,0 +1,241 @@
+<div class="ui-center" style="align-self: flex-start;">
+    <div id="help-button" ng-mousedown="setActiveView('help')" tooltip="{{ ctrl.strings.help }}"
+         tooltip-placement="right">
+        <i class="fa fa fa-question-circle-o"></i>
+        <div class="badge animated zoomIn infinite" ng-show="ctrl.unseenHelpTopics > 0">{{ctrl.unseenHelpTopics}}</div>
+    </div>
+
+    <div id="topbar">
+        <div class="first-row">
+            <div id="topbar-retirement-progress" ng-show="!$root.settings.variables.disableCeoAging"></div>
+            <div id="topbar-day-progress"></div>
+
+            <div class="container">
+                <div id="topbar-day"></div>
+                <div class="jeets" ng-click="$root.setActiveView('jitter')" ng-class="{ active: ctrl.newJeets > 0 }">
+                    <strong>{{ ctrl.newJeets }}</strong> new jeets
+                </div>
+                <div ng-click="ctrl.showRetirement()"
+                     class="retirement-label"
+                     localize="topbar_retirement"
+                     localize-data-years="{{ ctrl.retirementInfo.yearsLeft }}"
+                     ng-if="!$root.settings.variables.disableCeoAging"></div>
+            </div>
+        </div>
+        <div class="second-row">
+            <div class="controls" id="timeControls">
+                <div class="stateController" onclick="Game.Lifecycle.PauseTime()"
+                     tooltip="{{ ctrl.strings.pause }}"
+                     tooltip-placement="bottom"
+                     tooltip-append-to-body="true">
+                    <img src="images/pause.png"
+                         class="pause"
+                         ng-class="{'active': $root.settings.paused }">
+                </div>
+                <div class="stateController" onclick="Game.Lifecycle.StartTime(1)"
+                     tooltip="{{ ctrl.strings.speed1x }}"
+                     tooltip-placement="bottom"
+                     tooltip-append-to-body="true">
+                    <img src="images/play.png"
+                         class="play"
+                         ng-class="{'active': $root.settings.state == 1}">
+                </div>
+                <div class="stateController" onclick="Game.Lifecycle.StartTime(2)"
+                     tooltip="{{ ctrl.strings.speed2x }}"
+                     tooltip-placement="bottom"
+                     tooltip-append-to-body="true">
+                    <img src="images/2xplay.png"
+                         class="forward"
+                         ng-class="{'active': $root.settings.state == 2}">
+                </div>
+                <div class="stateController" onclick="Game.Lifecycle.StartTime(3)"
+                     tooltip="{{ ctrl.strings.speed3x }}"
+                     tooltip-placement="bottom"
+                     tooltip-append-to-body="true">
+                    <img src="images/3xplay.png"
+                         class="forward"
+                         ng-class="{'active': $root.settings.state == 3}">
+                </div>
+
+                <div class="time-machine-switch">
+                    <div class="toggle-switch"
+                         uib-tooltip="{{ctrl.autoStartText}}"
+                         tooltip-placement="bottom"
+                         ng-class="{active: $root.settings.autoStartTimeMachine}"
+                         ng-click="$root.settings.autoStartTimeMachine = !$root.settings.autoStartTimeMachine">
+                        <span></span>
+                    </div>
+                    <img src="images/clock.svg" class="clock">
+                </div>
+            </div>
+            <div>
+                <i class="fa fa-clock-o dimmed"></i> <span class="monospaced" id="topbar-time"></span>
+            </div>
+            <div tooltip="{{ ctrl.strings.total_research_points }}"
+                 tooltip-placement="bottom"
+                 tooltip-append-to-body="true"
+                 ng-click="setActiveView('researchTree')">
+                <i class="fa fa-flask dimmed"></i>
+                <span class="text-bold monospaced" id="topbar-rp"></span>
+            </div>
+            <div ng-click="setActiveView('finance')">
+                <span class="dimmed">$</span> <span class="value balance" id="topbar-balance"></span>
+                <i ng-if="financeData.profit.perDay > 0" class="fa fa-chevron-up color-green"></i>
+                <i ng-if="financeData.profit.perDay < 0" class="fa fa-chevron-down color-red"></i>
+                <div id="money-animation-container"></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div class="ui-center time-machine-button" style="pointer-events: none" ng-if="$root.enableNextDayButton">
+    <button class="blue margin-bottom" ng-click="ctrl.startTimeMachine()" style="pointer-events: all"
+            localize="start_time_machine"></button>
+</div>
+
+<div class="ui-center tips">
+    <div id="placement-tips" localize="placement_tips_v2"></div>
+    <div id="moving-tips" localize="moving_tips"></div>
+</div>
+
+<workstation-empty ng-if="selectedWorkstation != null && selectedWorkstation.employee == null"
+                   class="dialog"></workstation-empty>
+<workstation-employee ng-if="selectedWorkstation != null && selectedWorkstation.employee != null"
+                      class="window-large dialog"></workstation-employee>
+
+<rack ng-if="selectedRack != null" class="window-large dialog"></rack>
+<controller ng-if="selectedController != null" class="dialog"></controller>
+<racks ng-if="view == 'racks'" class="dialog"></racks>
+<finance-overview ng-if="view == 'finance'" class="dialog"></finance-overview>
+<contracts ng-if="view == 'contracts'" class="dialog"></contracts>
+<div ng-class="{ dimmer: $root.forceProductCreation }">
+    <product ng-if="view == 'product' || $root.forceProductCreation" class="dialog"></product>
+</div>
+<purchase ng-if="view == 'purchase'" class="dialog animated slideInUp"></purchase>
+<research-tree ng-if="view == 'researchTree'" class="dialog animated slideInUp"></research-tree>
+<inbox ng-if="view == 'inbox'" class="dialog"></inbox>
+<employees ng-if="view == 'employees'" class="dialog"></employees>
+<company ng-if="view == 'company'" class="dialog"></company>
+<inventory ng-if="view == 'inventory'" class="dialog"></inventory>
+<competitors ng-if="view == 'competitors'" class="dialog"></competitors>
+<help ng-if="view == 'help'" class="dialog"></help>
+<jitter ng-if="view == 'jitter'" class="dialog"></jitter>
+<outsourcing ng-if="view == 'outsourcing'" class="dialog"></outsourcing>
+
+<div id="deleteItem" tooltip="{{ ctrl.strings.move_to_stock }}">
+    <i class="fa fa-archive"></i>
+</div>
+
+<ul id="floor-selector" ng-if="activeBuilding.floors > 1 && mode != 'cityMap'">
+    <li ng-repeat="i in ctrl.floors track by i"
+        ng-class="{ active: $root.settings.selectedFloor == i }"
+        ng-click="ctrl.changeFloor(i)">
+        <div>{{i}}</div>
+    </li>
+</ul>
+
+<div class="ui-center" style="bottom: 0; pointer-events: none">
+    <div id="submenu" ng-if="activeBuilding.type == 'Hosting' && mode == null">
+        <table class="width100 text-center">
+            <tr>
+                <td localize="webserver" class="width33 color-violet"></td>
+                <td localize="cache" class="width33 color-green"></td>
+                <td localize="database" class="width33 color-blue"></td>
+            </tr>
+            <tr>
+                <td ng-repeat="type in ['totalWebserverThroughput', 'totalCacheThroughput', 'totalDatabaseThroughput'] track by type"
+                    tooltip-html="ctrl.strings.bottleneck_warning"
+                    tooltip-enable="ctrl.allHostingEqual != true && ctrl.lowestThroughput == (ctrl.hostingPerformance[type] || 0)"
+                    tooltip-append-to-body="true">
+                    <span class="text-bold">{{ ctrl.hostingPerformance[type] | smartnumber:2 }}
+                    </span>
+                    <i class="fa fa-warning color-red text-bold animated infinite flash"
+                       ng-show="ctrl.allHostingEqual != true && ctrl.lowestThroughput == (ctrl.hostingPerformance[type] || 0)"></i>
+                </td>
+            </tr>
+            <tr>
+                <td class="width33 dimmed">
+                    <i class="fa fa-thermometer-4"></i>
+                    <span localize="temperature"></span>
+                </td>
+                <td></td>
+                <td class="width33 dimmed">
+                    <i class="fa fa-microchip"></i>
+                    <span localize="produced_cu"></span>
+                </td>
+            </tr>
+            <tr class="text-bold">
+                <td>
+                    {{ $root.settings.hosting.roomTemperature | temperature }}
+                </td>
+                <td>
+                    <button class="blue small" localize="racks" style="pointer-events: all"
+                            ng-click="setActiveView('racks')"></button>
+                </td>
+                <td class="text-bold">{{ ctrl.hostingPerformance.producedCu | smartnumber }}</td>
+
+            </tr>
+        </table>
+    </div>
+    <div id="menu">
+        <ul>
+            <li ng-repeat="menuItem in menuItems track by menuItem.name"
+                uib-tooltip="{{ menuItem.tooltip }}"
+                tooltip-placement="{{ menuItem.tooltipPosition }}"
+                class="{{ menuItem.name }}"
+                ng-class="{'active': view == menuItem.name || mode == menuItem.name }"
+                ng-mousedown="setActiveView(menuItem.name)">
+                <i class="fa {{ menuItem.faIcon }}"></i>
+                <div class="badge" ng-if="menuItem.badgeCount > 0">{{ menuItem.badgeCount }}</div>
+            </li>
+        </ul>
+
+        <ul id="quick-building-selector"
+            ng-if="$root.settings.hosting != null && $root.settings.office.buildingName != null">
+            <li class="office" ng-click="ctrl.switchBuilding()"><i class="fa fa-retweet"></i></li>
+        </ul>
+
+        <div id="overlay-toggler" onclick="Game.overlayController.toggleOverlays();"
+             ng-show="mode != 'cityMap'"
+             tooltip="{{ ctrl.toggleOverlaysString }}">
+            <i class="fa fa-clone"></i>
+        </div>
+    </div>
+</div>
+
+<notifications></notifications>
+
+<div id="sidebar" ng-if="settings != null">
+    <products-overlay></products-overlay>
+</div>
+
+<div class="dimmer" ng-if="$root.settings.needsNewLoan">
+    <finance-overview class="dialog"></finance-overview>
+</div>
+
+<dark-overlay class="animated pulse"></dark-overlay>
+
+<gameover class="dimmer" ng-if="$root.settings.gameover == true"></gameover>
+<gamecompleted class="dimmer" ng-if="$root.settings.gameCompleted == true"></gamecompleted>
+
+<div ng-repeat="directive in ctrl.moddingDirectives">
+    <render template="directive.name"></render>
+</div>
+
+<success-message>
+    <h1>
+        <i class="fa fa-check color-green large"></i>
+        <span class="title"></span>
+    </h1>
+    <div class="content">
+    </div>
+</success-message>
+
+<investor class="closed" ng-if="ctrl.showAdvisor">
+    <p class="speech">
+        <i class="fa fa-times"></i>
+        <span></span>
+    </p>
+    <div class="person"></div>
+</investor>

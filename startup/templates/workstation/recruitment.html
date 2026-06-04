@@ -1,0 +1,177 @@
+<div class="item-list flex-column" style="height: 100%;" ng-if="ctrl.candidate == null">
+    <div class="item" ng-if="ctrl.view == 'headhunting'" style="height: 85%">
+        <h3 localize="headhunting"></h3>
+        <div class="content text-center">
+            <ul class="multi-toggle margin-bottom">
+                <li localize="beginner" ng-mousedown="ctrl.task.level = 'Beginner'"
+                    ng-class="{ active: ctrl.task.level == 'Beginner' }"></li>
+                <li localize="intermediate"
+                    ng-mousedown="ctrl.selectCandidateLevel('Intermediate')"
+                    tooltip-html="ctrl.strings.feature_unavailable_intermediate"
+                    tooltip-enable="!ctrl.intermediateFeaturesAvailable"
+                    tooltip-append-to-body="true"
+                    ng-class="{ disabled: !ctrl.intermediateFeaturesAvailable, active: ctrl.task.level == 'Intermediate' }"
+                ></li>
+                <li localize="expert"
+                    ng-mousedown="ctrl.selectCandidateLevel('Expert')"
+                    tooltip-html="ctrl.strings.feature_unavailable_expert"
+                    tooltip-enable="!ctrl.expertFeaturesAvailable"
+                    tooltip-append-to-body="true"
+                    ng-class="{ disabled: !ctrl.expertFeaturesAvailable, active: ctrl.task.level == 'Expert' }"
+                ></li>
+            </ul>
+
+            <div class="employee-types horizontal-scroll">
+                <div ng-repeat="type in ctrl.employeeTypes track by type.name"
+                     class="Bg-{{type.name}}"
+                     ng-class="{ active: ctrl.task.employeeTypeName == type.name }"
+                     ng-mousedown="ctrl.task.employeeTypeName = type.name">
+                    <h2 localize="{{type.name}}"></h2>
+                    <i class="fa {{type.cssClass}}"></i>
+                    <div class="description" localize="{{type.name}}_description"></div>
+                </div>
+                <div class="research-more" ng-if="!ctrl.everythingResearched">
+                    <h2 localize="research_more"></h2>
+                    <div class="description" localize="employee_types_research_tip"></div>
+                    <button class="cancel" ng-mousedown="ctrl.goToResearch()">
+                        <i class="fa fa-flask"></i>
+                        <span localize="research"></span>
+                    </button>
+                </div>
+            </div>
+
+            <table class="width100 text-center">
+                <tr>
+                    <td>
+                        <div class="toggle-switch"
+                             tooltip-html="ctrl.strings.feature_unavailable_intermediate"
+                             tooltip-enable="!ctrl.intermediateFeaturesAvailable"
+                             ng-class="{ disabled: !ctrl.intermediateFeaturesAvailable, active: ctrl.task.researchSalary }"
+                             ng-mousedown="ctrl.toggleFilter('researchSalary')">
+                            <span></span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="toggle-switch"
+                             tooltip-html="ctrl.strings.feature_unavailable_expert"
+                             tooltip-enable="!ctrl.expertFeaturesAvailable"
+                             ng-class="{ disabled: !ctrl.expertFeaturesAvailable, active: ctrl.task.researchDemands }"
+                             ng-mousedown="ctrl.toggleFilter('researchDemands')">
+                            <span></span>
+                        </div>
+                    </td>
+                    <td rowspan="2">
+                        <button localize="start_headhunting" ng-mousedown="ctrl.startHeadhunting()"
+                                ng-disabled="!ctrl.headhuntingValid"></button>
+                    </td>
+                </tr>
+                <tr>
+                    <td localize="research_salary_expectation"></td>
+                    <td localize="research_demands"></td>
+                </tr>
+                <tr class="small">
+                    <td>+<span localize="x_hours" localize-data-hours="2"></span></td>
+                    <td>+<span localize="x_hours" localize-data-hours="2"></span></td>
+                    <td localize="x_hours_per_candidate" localize-data-hours="{{ctrl.headhuntingHours }}"></td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="item" ng-if="ctrl.view == null">
+        <h3 localize="headhunting"></h3>
+        <div class="content text-center">
+            <button class="big"
+                    localize="start_headhunting"
+                    ng-mousedown="ctrl.view = 'headhunting'"
+                    ng-if="$root.selectedWorkstation.employee.task.employeeTypeName == null"></button>
+
+            <div ng-if="$root.selectedWorkstation.employee.task.employeeTypeName != null">
+                <table>
+                    <tr>
+                        <td colspan="2" class="text-center">
+                            <div class="label-row" style="display: inline-block">
+                                <span class="{{ $root.selectedWorkstation.employee.task.employeeTypeName }}" localize="{{ $root.selectedWorkstation.employee.task.employeeTypeName }}"></span>
+                                <span localize="{{ $root.selectedWorkstation.employee.task.level }}"></span>
+                                <span localize="research_salary_expectation" ng-if="$root.selectedWorkstation.employee.task.researchSalary"></span>
+                                <span localize="research_demands" ng-if="$root.selectedWorkstation.employee.task.researchDemands"></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <div class="progressBar">
+                                <div class="indicator blue" style="width: {{ ctrl.taskProgress}}%">
+                                    <span>{{ ctrl.taskProgress}}%</span>
+                                </div>
+                            </div>
+
+                         </td>
+                        <td style="width: 1px">
+                            <button class="red small" localize="cancel" ng-mousedown="ctrl.cancel()"></button>
+                        </td>
+                    </tr>
+                </table>
+                <div class="padding text-center" ng-show="$root.settings.paused && !$root.timeMachineActive">
+                    <div class="alert alert-danger text-center infinite animated pulse" style="display: inline-block;"
+                         localize="game_is_paused"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex1 padding" style="margin-top: 0; overflow-y: scroll;" ng-if="ctrl.view == null">
+        <table class="medium hovered candidates" ts-wrapper ng-if="$root.settings.candidates.length > 0">
+            <thead>
+            <tr>
+                <!--<th ts-criteria="selected"><input type="checkbox" ng-model="ctrl.checkboxToggle"/></th>-->
+                <th ts-criteria="name" localize="name"></th>
+                <th ts-criteria="employeeTypeName" localize="type"></th>
+                <th ts-criteria="level" localize="level"></th>
+                <th ts-criteria="speed" localize="speed"></th>
+                <th ts-criteria="hoursLeft" localize="time_left" ts-default></th>
+                <th class="text-right">
+                    <button class="red small" ng-click="ctrl.dismissAll()"><i class="fa fa-times"></i></button>
+                </th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="candidate in ctrl.candidates track by candidate.id" ts-repeat ts-hide-no-data
+                ng-click="ctrl.selectCandidate(candidate);" >
+                <!--<td><input type="checkbox" ng-model="candidate.selected"></td>-->
+                <td class="candidate-name">
+                    <div class="avatar-image tiny" style="background-image: url('assets/people/{{ ::candidate.avatar }}.png')"></div>
+                    <div class="flex1">{{ candidate.name }} <i class="fa fa-star color-yellow" ng-if="candidate.superstar" tooltip="{{ctrl.strings.superstar_employee}}"></i></div>
+
+                </td>
+                <td class="{{ candidate.employeeTypeName }}">
+                    <icon class="{{ candidate.employeeTypeName }}" tooltip="{{ ctrl.strings[candidate.employeeTypeName] }}"></icon>
+                </td>
+                <td localize="{{ candidate.level }}"></td>
+                <td>{{ candidate.speed }}% <span class="dimmed">({{candidate.maxSpeed}}%)</span></td>
+                <td localize="x_hours" localize-data-hours="{{candidate.hoursLeft}}"></td>
+                <td class="text-right">
+                    <button class="small blue width70"
+                            ng-if="$root.selectedWorkstation.employee.level == 'Expert'"
+                            ng-class="{ disabled: !candidate.instantHireAvailable }"
+                            tooltip-html="candidate.instantHireTooltip"
+                            tooltip-enable="!candidate.instantHireAvailable"
+                            ng-click="ctrl.instantHire(candidate);$event.stopPropagation();">
+                        <i class="fa fa-handshake-o"></i>
+                        <span>{{candidate.instantHireSalary | currency:'$':0}}</span>
+                    </button>
+                    <button class="small red" ng-click="ctrl.dismissCandidate(candidate); $event.stopPropagation();"><i class="fa fa-times"></i></button>
+                </td>
+            </tr>
+            </tbody>
+
+        </table>
+        <div class="alert alert-info text-center text-bold" localize="no_candidates" ng-if="$root.settings.candidates.length == 0"></div>
+    </div>
+</div>
+
+<div class="cancel-bar" ng-if="ctrl.view != null">
+    <button class="blue" ng-mousedown="ctrl.view = null;" localize="cancel"></button>
+</div>
+
+<workstation-recruitment-negotiate ng-if="ctrl.candidate != null"></workstation-recruitment-negotiate>

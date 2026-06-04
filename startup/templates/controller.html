@@ -1,0 +1,129 @@
+<h1>
+    <div class="text-hover-blue inline">
+        <i class="fa fa-pencil-square-o"></i>
+        <input type="text" ng-model="selectedController.name">
+    </div>
+
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<ul class="tab-list">
+    <li localize="rules" ng-class="{ active: ctrl.tab == 'rules'}" ng-click="ctrl.tab = 'rules'"></li>
+    <li localize="logging" ng-class="{ active: ctrl.tab == 'logging'}" ng-click="ctrl.tab = 'logging'"></li>
+</ul>
+
+<div class="tab-content" ng-show="ctrl.tab == 'rules'">
+    <div class="flex-row">
+        <!-- List -->
+        <div class="flex2 item-list">
+            <!-- Default Clockrate -->
+            <div class="item">
+                <h3 localize="default_clockrate"></h3>
+                <div class="content text-center">
+                    <input type="range" min="0" max="200" class="secondary-color" ng-model="$root.selectedController.defaultClockRate">
+                    <div class="text-bold">{{$root.selectedController.defaultClockRate}}%</div>
+                </div>
+            </div>
+
+            <div class="item"
+                 ng-class="{active: ctrl.rule == rule} "
+                 ng-repeat="rule in $root.selectedController.rules track by rule.id" ng-click="ctrl.rule = rule">
+                <h3>{{rule.name}}</h3>
+            </div>
+            <div class="item green" ng-click="ctrl.createRule()">
+                <h3 localize="create_rule"></h3>
+            </div>
+        </div>
+        <!-- Rule Configuration -->
+        <div class="flex4 item-list" style="height: 100%">
+            <div class="item rule-configuration" ng-if="ctrl.rule != null">
+                <h3>{{ ctrl.rule.name}}</h3>
+                <div class="content">
+                    <div class="margin alert alert-info small" style="margin-top: 0" localize="rules_description_v2"></div>
+                    <table class="medium">
+                        <tr>
+                            <td class="width50" colspan="2" localize="name" ng-model="ctrl.rule.name"></td>
+                            <td class="width50">
+                                <input type="text" ng-model="ctrl.rule.name">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td localize="product" colspan="2"></td>
+                            <td>
+                                <div dropdown-select="ctrl.websites"
+                                     dropdown-onchange="ctrl.websiteChanged(selected)"
+                                     dropdown-model="ctrl.selectedWebsite"
+                                     dropdown-item-label="name">
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="3"><hr class="secondary"> </td>
+                        </tr>
+                        <tr>
+                            <td style="width: 1%">
+                                <div class="toggle-switch" ng-click="ctrl.rule.ddosAttack = ctrl.rule.ddosAttack > 0 ? 0 : 100" ng-class="{ active: ctrl.rule.ddosAttack > 0 }">
+                                    <span></span>
+                                </div>
+                            </td>
+                            <td>
+                                <span localize="ddosattack"></span>
+                                <tooltip key="ccc_ddos_attack_tooltip"></tooltip>
+
+                            </td>
+                            <td>
+                                <input type="range" min="1" max="200" ng-model="ctrl.rule.ddosAttack" class="secondary-color" style="width: 80%" ng-class="{ 'disable-container': ctrl.rule.ddosAttack == 0 }">
+                                {{ ctrl.rule.ddosAttack }}%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div class="toggle-switch" ng-click="ctrl.rule.viralBoost = ctrl.rule.viralBoost > 0 ? 0 : 100" ng-class="{ active: ctrl.rule.viralBoost > 0 }">
+                                    <span></span>
+                                </div>
+                            </td>
+                            <td>
+                               <span localize="viralboost"></span>
+                                <tooltip key="ccc_viral_boost_tooltip"></tooltip>
+                            </td>
+                            <td>
+                                <input type="range" min="1" max="200" ng-model="ctrl.rule.viralBoost" class="secondary-color" style="width: 80%" ng-class="{ 'disable-container': ctrl.rule.viralBoost == 0 }">
+                                {{ ctrl.rule.viralBoost }}%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" localize="current_status"></td>
+                            <td>
+                                <div class="color-red" ng-if="!ctrl.rule.active">
+                                    <i class="fa fa-circle"></i>
+                                    <span localize="not_active"></span>
+                                </div>
+                                <div class="color-green" ng-if="ctrl.rule.active">
+                                    <i class="fa fa-circle"></i>
+                                    <span localize="active"></span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+
+                    <div class="margin">
+                        <button class="red" localize="delete" ng-click="ctrl.deleteRule()"></button>
+                        <button class="blue" localize="duplicate" ng-click="ctrl.duplicateRule()"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tab-content padding" ng-show="ctrl.tab == 'logging'">
+    <div class="alert alert-info text-center text-bold" ng-if="ctrl.logs.length == 0" localize="no_entries"></div>
+    <div class="item-list" ng-if="ctrl.logs.length > 0">
+        <div class="item {{log.color}}" ng-repeat="log in ctrl.logs track by log.id">
+            <div class="content flex-row" >
+                <div class="flex1">{{ log.timestamp }}</div>
+                <div class="flex3" ng-bind-html="log.message"></div>
+            </div>
+        </div>
+    </div>
+</div>

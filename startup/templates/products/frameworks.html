@@ -1,0 +1,58 @@
+<div class="flex-column" style="height: 100%;">
+    <div class="item-list horizontal margin dragscroll optimize-scroll horizontal-scroll">
+        <div class="item"
+             ng-repeat="framework in frameworksCtrl.frameworks track by framework.name"
+             ng-class="{ active: framework.active }">
+            <h3 localize="{{ framework.name }}"></h3>
+            <div class="content text-center">
+                <img ng-src="{{framework.logoPath}}" class="margin-top">
+
+                <div class="shadow-box" style="display: inline-block;">
+                    <table class="text-left medium">
+                        <tr>
+                            <td localize="license_cost"></td>
+                            <td class="text-bold" ng-class="{ 'color-red': !framework.enoughMoney }">{{ framework.licenseCost | currency : '$': 0 }}</td>
+                        </tr>
+                        <tr>
+                            <td localize="price_per_user"></td>
+                            <td class="text-bold">{{ framework.pricePerUser | currency:'$':5 }}</td>
+                        </tr>
+                        <tr>
+                            <td localize="cu_per_ms"></td>
+                            <td class="text-bold">{{ framework.cuPerMs | number: 2 }}</td>
+                        </tr>
+                        <tr>
+                            <td localize="max_features"></td>
+                            <td class="text-bold">{{ framework.maxFeatures }}</td>
+                        </tr>
+                        <tr>
+                            <td localize="max_feature_level"></td>
+                            <td class="text-bold">{{ framework.maxFeatureLevel }}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div>
+                    <div ng-if="!framework.researched" class="alert alert-danger text-center not-researched-alert" localize="not_unlocked"></div>
+                    <div ng-if="framework.researched && framework.warning" class="alert alert-danger text-center not-researched-alert" ng-bind-html="framework.warning"></div>
+
+                    <button class="blue margin-top"
+                            ng-disabled="framework.active || !framework.available"
+                            ng-if="framework.researched && !framework.warning"
+                            ng-class="{ disabled: !framework.enoughMoney }"
+                            uib-tooltip="{{ frameworksCtrl.notEnoughMoneyString}}"
+                            tooltip-enable="!framework.enoughMoney"
+                            ng-click="framework.enoughMoney && frameworksCtrl.installFramework(framework)"
+                            localize="{{ framework.active ? 'installed' : 'install' }}">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="cancel-bar">
+        <button class="blue" ng-click="$parent.ctrl.view = ''" localize="back"></button>
+    </div>
+</div>
+
+

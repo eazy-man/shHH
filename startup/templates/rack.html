@@ -1,0 +1,296 @@
+<h1>
+    <div class="text-hover-blue inline">
+        <i class="fa fa-pencil-square-o"></i>
+        <input type="text" ng-model="selectedRack.name" maxlength="20">
+    </div>
+
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<div class="flex-row" style="height: 100%;">
+    <div class="flex4 flex-column flex-super-center">
+        <div class="layout-container">
+            <ul class="layout {{selectedRack.itemName}}" ng-sortable="ctrl.sortConfig">
+                <li ng-repeat="device in selectedRack.layout track by device.id"
+                    draggable="false"
+                    class="{{ device.deviceName }} u{{device.units}} {{ ctrl.deviceStates[device.id] }}"
+                    ng-class="{ device: device.deviceName != null, active: device.id == ctrl.selectedDevice.id, ignore: device.deviceName == null }"
+                    ng-click="device.deviceName != null && ctrl.showDevice(device)">
+                </li>
+            </ul>
+        </div>
+    </div>
+    <div class="flex5" style="overflow: auto;">
+        <!-- Rack Info -->
+        <div ng-if="ctrl.view == null" class="flex-super-center flex-column" style="height: 100%;">
+            <div class="item-list width100">
+                <div class="item rack-info">
+                    <ul class="tab-list" ng-if="ctrl.devicesForMassPatch.length > 0">
+                        <li class="width50" localize="stats" ng-class="{active: ctrl.tab == 'stats'}"
+                            ng-click="ctrl.tab = 'stats'"></li>
+                        <li class="width50" localize="mass_configure" ng-class="{active: ctrl.tab =='configure'}"
+                            ng-click="ctrl.tab = 'configure'"></li>
+                    </ul>
+
+                    <div class="content" ng-if="ctrl.tab == 'stats'">
+                        <table class="medium">
+                            <tr ng-if="ctrl.controllers != null">
+                                <td class="dimmed" localize="controller"></td>
+                                <td>
+                                    <div dropdown-select="ctrl.controllers"
+                                         dropdown-model="ctrl.selectedController"
+                                         dropdown-onchange="ctrl.controllerChanged(selected)"
+                                         dropdown-item-label="name">
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="dimmed" localize="type"></td>
+                                <td>
+                                    <span localize="{{ ctrl.item.name }}"></span>
+                                    <button
+                                            type="button"
+                                            class="blue tiny square"
+                                            ng-disabled="ctrl.rackTypes.length == 0"
+                                            ng-click="ctrl.view = 'upgradeRack'"
+                                            localize="upgrade"></button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="dimmed" localize="consumed_power"></td>
+                                <td localize="x_watt" localize-data-amount-format="number"
+                                    localize-data-amount="{{ ctrl.rackPerformance.totalConsumedPower }}"></td>
+                            </tr>
+                            <tr>
+                                <td class="dimmed" localize="rack_temperature"></td>
+                                <td>{{ ctrl.rackPerformance.rackTemperature | temperature }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2">
+                                    <hr class="secondary dark">
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="dimmed" localize="total_webserver_throughput"></td>
+                                <td>{{ ctrl.rackPerformance.totalWebserverThroughput || 0 | number }}</td>
+                            </tr>
+                            <tr>
+                                <td class="dimmed" localize="total_database_throughput"></td>
+                                <td>{{ ctrl.rackPerformance.totalDatabaseThroughput || 0 | number }}</td>
+                            </tr>
+                            <tr>
+                                <td class="dimmed" localize="total_cache_throughput"></td>
+                                <td>{{ ctrl.rackPerformance.totalCacheThroughput || 0 | number }}</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="content flex-column" ng-if="ctrl.tab == 'configure'"
+                         style="justify-content: space-around; align-items: center;">
+                        <div localize="mass_configure_tip"
+                             class="alert alert-info small text-center small-padding"></div>
+                        <div class="shadow-box">
+                            <component component="::stack.component"
+                                       ng-disabled="!stack.isAvailableInInventory"
+                                       stack-amount="::stack.amount"
+                                       class="small"
+                                       ng-repeat="stack in ctrl.stacks track by stack.component.name"
+                                       show-inventory-amount="true">
+                            </component>
+                        </div>
+                        <button localize="configure" ng-click="ctrl.configure(true)"
+                                ng-disabled="!ctrl.readyToPatch"></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="text-center">
+                <button ng-click="ctrl.view = 'add-device'" localize="add_device" class="margin-top"></button>
+                <button class="blue"
+                        localize="duplicate_price"
+                        localize-data-price="{{ctrl.duplicatePrice}}"
+                        localize-data-price-format="currency"
+                        ng-click="ctrl.duplicate()"
+                        ng-disabled="ctrl.duplicatePrice > $root.settings.balance"
+                ></button>
+            </div>
+        </div>
+
+        <!-- Add Device -->
+        <div ng-if="ctrl.view == 'add-device'" class="width100" style="overflow: auto;">
+            <div class="item-list add-devices">
+                <div class="item" ng-repeat="device in ctrl.rackDevices track by device.name">
+                    <h3 class="text-left">
+                        <span>{{device.localized}}</span>
+                        <span class="pull-right">
+                            <span tooltip="{{ctrl.strings.inventory}}" tooltip-append-to-body="true" ng-show="$parent.settings.hosting.inventory[device.name] > 0">
+                                <i class="fa fa-archive"></i> {{ $parent.settings.hosting.inventory[device.name] || 0 }}
+                            </span>
+
+                            <button class="red tiny" localize="sell" ng-click="ctrl.sellDevice(device)"
+                                ng-if="($parent.settings.hosting.inventory[device.name] || 0) > 0"></button>
+                        </span>
+
+                    </h3>
+                    <div class="content flex-row">
+                        <div class="flex3">
+                            <div class="{{device.name}}"
+                                 uib-popover-html="device.popoverText"
+                                 popover-trigger="mouseenter"
+                                 popover-append-to-body="true"
+                                 popover-title=" {{ device.localized }}"></div>
+                        </div>
+                        <div class="flex1 text-right">
+                            <button localize="install" ng-click="ctrl.addDevice(device)"
+                                    ng-if="($parent.settings.hosting.inventory[device.name] || 0) > 0"></button>
+                            <button class="blue" localize="buy_x" localize-data-amount="{{device.price}}"
+                                    localize-data-amount-format="currency"
+                                    ng-click="ctrl.addDevice(device)"
+                                    ng-if="($parent.settings.hosting.inventory[device.name] || 0) <= 0"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="alert alert-info text-center margin">
+                    <div localize="use_research_to_unlock_more" ng-click="$root.setActiveView('researchTree', 'Hosting')"></div>
+                </div>
+            </div>
+
+            <div class="cancel-bar">
+                <button class="blue" ng-click="ctrl.back()" localize="back"></button>
+            </div>
+        </div>
+
+        <!-- Device Details -->
+        <div ng-if="ctrl.view == 'device'" class="flex-super-center" id="device-details">
+
+            <div class="item-list width100">
+                <div class="item">
+                    <h3 localize="{{ctrl.selectedDevice.deviceName }}"></h3>
+                    <ul class="tab-list" ng-if="ctrl.stacks != null && ctrl.selectedDevicePerformance.state == 'NotConfigured'">
+                        <li class="active width50" localize="stats" ng-class="{active: ctrl.tab =='stats'}"
+                            ng-click="ctrl.tab = 'stats'"></li>
+                        <li class="width50" localize="configure" ng-class="{active: ctrl.tab =='configure'}"
+                            ng-click="ctrl.tab = 'configure'"></li>
+                    </ul>
+                    <div class="content" ng-if="ctrl.tab == 'stats'">
+                        <table style="width: 80%; margin: auto">
+                            <tr ng-if="ctrl.selectedDevice.clockRate != null">
+                                <td colspan="2">
+                                    <h4 localize="clockrate" class="text-center"></h4>
+                                </td>
+                            </tr>
+                            <tr ng-if="ctrl.selectedDevice.clockRate != null">
+                                <td colspan="2"
+                                    tooltip-enable="$root.selectedRack.controllerId != null"
+                                    tooltip-html="ctrl.clockrate_controlled">
+                                    <rzslider class="grey" rz-slider-options="ctrl.clockRateSliderOptions"
+                                              rz-slider-model="ctrl.selectedDevice.clockRate"
+                                              ng-class="{'disable-container': $root.selectedRack.controllerId != null }"></rzslider>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td localize="power" class="width70"></td>
+                                <td>
+                                    <div class="toggle-switch" ng-class="{active: ctrl.selectedDevice.powered }"
+                                         ng-click="ctrl.selectedDevice.powered = !ctrl.selectedDevice.powered">
+                                        <span></span>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td localize="consumed_power"></td>
+                                <td>{{ ctrl.selectedDevicePerformance.consumedPower || 0 | watt }}</td>
+                            </tr>
+                            <tr ng-show="ctrl.selectedDevicePerformance.temperature != null">
+                                <td localize="temperature"></td>
+                                <td>{{ ctrl.selectedDevicePerformance.temperature | temperature }}</td>
+                            </tr>
+                            <tr ng-if="ctrl.selectedDevicePerformance.webserverThroughput != null">
+                                <td localize="webserver_throughput"></td>
+                                <td>{{ctrl.selectedDevicePerformance.webserverThroughput | number }}</td>
+                            </tr>
+                            <tr ng-if="ctrl.selectedDevicePerformance.databaseThroughput != null">
+                                <td localize="database_throughput"></td>
+                                <td>{{ctrl.selectedDevicePerformance.databaseThroughput | number }}</td>
+                            </tr>
+                            <tr ng-if="ctrl.selectedDevicePerformance.cacheThroughput != null">
+                                <td localize="cache_throughput"></td>
+                                <td>{{ctrl.selectedDevicePerformance.cacheThroughput | number }}</td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="device-warning text-center">
+                                    <div class="alert alert-warning"
+                                         ng-if="ctrl.selectedDevicePerformance.state == 'ReducedPerformance'"
+                                         localize="reduced_performance_description"></div>
+                                    <div class="alert alert-danger animated flash"
+                                         ng-if="ctrl.selectedDevicePerformance.state == 'OverheatProtection'"
+                                         localize="overheat_protection_description"></div>
+                                    <div class="alert alert-info animated flash text-center"
+                                         ng-if="ctrl.selectedDevicePerformance.state == 'NotConfigured'">
+                                        <span localize="notconfigured_description"></span>
+                                        <br>
+                                        <button class="blue small margin-top" localize="configure"
+                                                ng-click="ctrl.tab = 'configure'"></button>
+                                    </div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="2" class="text-center">
+                                    <button class="red" localize="detach"
+                                            ng-click="ctrl.detachDevice(ctrl.selectedDevice)"></button>
+                                </td>
+                            </tr>
+
+                        </table>
+                    </div>
+
+                    <div class="content flex-column server-configure" ng-if="ctrl.tab == 'configure'"
+                         style="justify-content: space-around; align-items: center;">
+                        <div localize="configure_tip" class="alert alert-info small text-center small-padding"></div>
+                        <div class="shadow-box">
+                            <component component="::stack.component"
+                                       ng-disabled="!stack.isAvailableInInventory"
+                                       stack-amount="::stack.amount"
+                                       class="small"
+                                       ng-repeat="stack in ctrl.stacks track by stack.component.name"
+                                       show-inventory-amount="true">
+                            </component>
+                        </div>
+                        <button localize="configure" ng-click="ctrl.configure()"
+                                ng-disabled="!ctrl.readyToPatch"></button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cancel-bar">
+                <button class="blue" ng-click="ctrl.back()" localize="back"></button>
+            </div>
+        </div>
+
+        <div ng-if="ctrl.view == 'upgradeRack'" class="flex-super-center upgrade-rack" style="height: 100%">
+            <div class="item-list horizontal">
+                <div class="item text-center" ng-repeat="rackType in ctrl.rackTypes track by rackType.name"
+                     popover-trigger="mouseenter"
+                     popover-append-to-body="true"
+                     uib-popover-html="rackType.popoverText"
+                     popover-title="{{rackType.localizedName}}">
+                    <div class="content">
+                        <img ng-src="{{ rackType.url }}"/>
+                        <div class="text-center">
+                            <button class="blue" localize="upgrade" ng-click="ctrl.upgradeRack(rackType)"
+                                    ng-if="$root.selectedRack.itemName != rackType.name"></button>
+                            <div class="alert alert-info" ng-if="$root.selectedRack.itemName == rackType.name"
+                                 localize="current"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="cancel-bar">
+                <button class="blue" ng-click="ctrl.back()" localize="back"></button>
+            </div>
+        </div>
+    </div>
+</div>
+

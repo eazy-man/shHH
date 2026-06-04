@@ -1,0 +1,68 @@
+
+<div class="flex1">
+    <div class="item-list">
+        <div class="item" ng-repeat="category in featuresAddCtrl.categories track by category.name"
+             ng-class="{ active: category == featuresAddCtrl.selectedCategory }"
+             ng-click="featuresAddCtrl.selectedCategory = category">
+            <h3 class="text-left">
+                <i class="dimmed fa {{ ::category.faIcon }}"></i>
+                <span>{{::category.title}}</span>
+            </h3>
+            <div class="content">
+                <p>{{ ::category.description }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="flex1">
+    <div class="item-list">
+        <div class="item" ng-repeat="feature in featuresAddCtrl.features track by feature.name"
+             ng-class="{ active: feature.completed }">
+            <h3 class="text-left">
+                <i class="dimmed fa {{ ::feature.faIcon }}"></i>
+                <span localize="{{ ::feature.name }}"></span>
+            </h3>
+
+            <div class="content flex-row width100">
+                <div class="flex4 padding-right">
+                    <p class="dimmed" localize="{{ feature.name}}_description"></p>
+
+                    <div class="requirements" ng-if="feature.stacks != null">
+                        <component component="::stack.component"
+                                   stack-amount="::stack.amount"
+                                   class="small"
+                                   always-enabled="true"
+                                   ng-repeat="stack in feature.stacks track by stack.component.name">
+                        </component>
+                    </div>
+
+                    <div class="flex-super-center large">
+                        <div tooltip-append-to-body="true"
+                             ng-if="feature.categoryName == 'Revenue' && feature.dissatisfaction != null"
+                             tooltip-append-to-body="true"
+                             uib-tooltip-html="featuresAddCtrl.strings.dissatisfaction"
+                             class="flex-super-center">
+                            <i class="smiley small sad"></i>
+                            <div class="margin color-red">-{{ feature.dissatisfaction }}%</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex2 text-right">
+                    <button class="small"
+                            ng-class="{ 'disabled': !feature.researched || feature.alreadyAdded }"
+                            uib-tooltip-html="featuresAddCtrl.strings.notUnlocked"
+                            tooltip-enable="!feature.researched"
+                            tooltip-append-to-body="true"
+                            ng-click="featuresAddCtrl.addFeature(feature)"
+                            localize="{{ !feature.researched ? 'not_researched' : feature.alreadyAdded ? 'already_added' : 'add_feature'}}"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="cancel-bar">
+    <button class="red" ng-click="featuresAddCtrl.cancel()" localize="cancel"></button>
+</div>

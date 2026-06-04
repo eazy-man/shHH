@@ -1,0 +1,59 @@
+<div class="padding text-center">
+    <div>
+        <div class="flex-super-center flex-row">
+            <div dropdown-select="supporterCtrl.teams" dropdown-model="supporterCtrl.selectedTeam"
+                 dropdown-item-label="label" dropdown-onchange="supporterCtrl.onTeamChange(selected)"
+                 ng-if="$root.selectedWorkstation.employee.task == null"></div>
+            <button class="margin-left" ng-click="supporterCtrl.toggle()"
+                    localize="start" ng-if="$root.selectedWorkstation.employee.task == null"></button>
+            <button class="cancel margin-left"
+                    ng-if="$root.selectedWorkstation.employee.task != null"
+                    ng-click="supporterCtrl.toggle()"
+                    localize="change_team" localize-data-teamname="{{supporterCtrl.selectedTeam.label}}"></button>
+        </div>
+
+        <hr class="big">
+
+        <div ng-if="$root.selectedWorkstation.employee.task != null">
+            <div ng-if="supporterCtrl.ticket">
+                <h3>
+                    <span localize="ticket_x" localize-data-number="{{ supporterCtrl.ticket.number }}"></span>
+                    <span class="dimmed small">(<span localize="x_complexity" localize-data-complexity="{{ supporterCtrl.strings['complexity_' + supporterCtrl.ticket.complexity] }}"></span>)</span>
+                </h3>
+                <div class="progressBar big">
+                    <div class="indicator blue"
+                         style="width: {{ supporterCtrl.percentageCompleted }}%">
+                <span>
+                    <strong>{{ supporterCtrl.percentageCompleted }}%</strong>
+                </span>
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="alert alert-info text-center text-bold" ng-if="supporterCtrl.ticket == null">
+                <span localize="training" ng-if="$root.selectedWorkstation.employee.isTraining"></span>
+                <span localize="waiting_for_ticket" ng-if="!$root.selectedWorkstation.employee.isTraining"></span>
+
+            </div>
+        </div>
+
+        <div class="alert alert-danger text-center text-bold"
+             ng-if="$root.selectedWorkstation.employee.task == null"
+             localize="no_support_team_selected"></div>
+
+        <hr class="big">
+
+        <h3 localize="time_to_resolve"></h3>
+        <table class="big shadow-box" style="margin: auto; width: 40%">
+            <tr ng-repeat="type in supporterCtrl.resolveTimes track by type.name">
+                <td class="text-left" localize="x_complexity" localize-data-complexity="{{ supporterCtrl.strings['complexity_' + type.name] }}"></td>
+                <td class="text-right text-bold" localize="x_hours"
+                    localize-data-hours="{{type.hours | number: 1 }}"></td>
+            </tr>
+        </table>
+        <div class="padding">
+            <div class="alert alert-info text-center margin-top" localize="supporter_tip"></div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,87 @@
+<div class="flex-row">
+    <!-- List -->
+    <div class="flex2 item-list">
+        <div class="item" ng-class="{active: plansCtrl.plan == plan }" ng-click="plansCtrl.selectPlan(plan)"
+             ng-repeat="plan in $root.settings.productionPlans track by plan.id">
+            <h3>{{ plan.name }}</h3>
+        </div>
+        <div class="item green" ng-click="plansCtrl.createPlan()">
+            <h3 localize="create_plan"></h3>
+        </div>
+    </div>
+
+    <!-- Plan Configuration -->
+    <div class="flex4 item-list" ng-show="plansCtrl.plan == null">
+        <div class="alert alert-danger margin" localize="no_plan_selected"></div>
+    </div>
+
+    <div class="flex4 item-list" ng-show="plansCtrl.plan != null">
+        <div class="item">
+            <div class="content">
+                <table class="medium">
+                    <tr>
+                        <td class="width50">
+                            <input type="text" ng-model="plansCtrl.plan.name">
+                        </td>
+                        <td class="width50 text-right">
+                            <button class="red" localize="delete" ng-click="plansCtrl.deletePlan(plansCtrl.plan)"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div class="toggle-switch"
+                                 ng-class="{ active: plansCtrl.plan.exceedTargets }"
+                                 ng-click="plansCtrl.plan.exceedTargets = !plansCtrl.plan.exceedTargets">
+                                <span></span>
+                            </div>
+                            <div class="margin-bottom" localize="manager_exceed_targets"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <div class="toggle-switch"
+                                 ng-class="{ active: plansCtrl.plan.skipModulesWithMissingRequirements }"
+                                 ng-click="plansCtrl.toggleSkipModules(plansCtrl.plan)">
+                                <span></span>
+                            </div>
+                            <div localize="manager_skip_modules"></div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="item production-plan" ng-repeat="type in plansCtrl.employeeTypes track by type.name">
+            <h3 class="text-left" ng-click="closed = !closed">
+                    <span class="{{type.name}}">
+                        <icon class="{{type.name}}"></icon> <span localize="{{type.name}}"></span>
+                    </span>
+
+                <i class="fa pull-right mt3" ng-class="{ 'fa-arrow-down': closed, 'fa-arrow-up': !closed }"></i>
+            </h3>
+
+            <div class="content" ng-show="!closed">
+                <table class="medium">
+                    <thead>
+                    <tr>
+                        <th colspan="2" localize="name"></th>
+                        <th localize="in_stock"></th>
+                        <th class="text-center" localize="target_amount">
+                        </th>
+                    </tr>
+                    </thead>
+
+                    <tr ng-repeat="component in type.components track by component.name">
+                        <td style="width: 1%">
+                            <component component="::component" class="small" always-enabled="true"></component>
+                        <td localize="{{ component.name }}" class="component-name"></td>
+                        <td>{{ component.inventoryCount }}</td>
+                        <td class="text-center" style="width: 20%">
+                            <input type="number" min="0" max="99999" ng-model="plansCtrl.plan.production[component.name]">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

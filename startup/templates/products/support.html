@@ -1,0 +1,142 @@
+<div class="flex-row">
+    <!-- List -->
+    <div class="flex2 item-list margin-right">
+        <div class="item">
+            <h3 localize="stats"></h3>
+            <div class="content text-center">
+                <h4>
+                    <span class="small dimmed padding-bottom" style="display: block">
+                        <span localize="satisfaction"></span>
+                        <tooltip key="support_satisfaction_description"></tooltip>
+                    </span>
+                    <span class="large flex-super-center">
+                        <i class="smiley small margin-right"
+                           ng-class="{ moody: $parent.ctrl.productProgress.supportSatisfaction <= 70 && $parent.ctrl.productProgress.supportSatisfaction > 50, sad: $parent.ctrl.productProgress.supportSatisfaction <= 50 }"
+                        ></i>
+                        {{$parent.ctrl.productProgress.supportSatisfaction}}%</span>
+                    <br>
+                </h4>
+                <hr class="secondary">
+                <h5>
+                    <span localize="x_hours" localize-data-hours="{{ supportCtrl.averageResolveTime | number: 1 }}"></span><br>
+                    <span class="dimmed">
+                        <span localize="average_resolve_time"></span>
+                        <tooltip key="resolve_time_description"></tooltip></span>
+                </h5>
+                <hr class="secondary">
+                <h5>
+                    {{ supportCtrl.website.resolvedTickets }}<br>
+                    <span class="dimmed" localize="tickets_resolved"></span>
+                </h5>
+            </div>
+        </div>
+        <div class="item"
+             ng-class="{active: supportCtrl.team == team }"
+             ng-repeat="team in supportCtrl.website.supportTeams track by team.id" ng-click="supportCtrl.team = team">
+            <h3>{{team.name}}</h3>
+        </div>
+        <div class="item green" ng-click="supportCtrl.createTeam()">
+            <h3 localize="create_team"></h3>
+        </div>
+    </div>
+    <!-- Tickets -->
+    <div class="flex4 item-list" style="height: 100%;">
+        <div class="item" ng-if="supportCtrl.team == null" style="margin-left: 0">
+            <h3 localize="unresolved_tickets"></h3>
+            <div class="content tickets-list">
+                <div class="alert alert-info text-center text-bold" localize="no_support_tickets" ng-if="supportCtrl.tickets.length == 0"></div>
+                <table ng-if="supportCtrl.tickets.length > 0">
+                    <thead>
+                    <tr>
+                        <th style="width: 10%">#</th>
+                        <th style="width: 23%"><i class="fa fa-share-alt"></i> <span localize="complexity"></span></th>
+                        <th><i class="fa fa-user"></i> <span localize="assignee"></span></th>
+                        <th><i class="fa fa-hourglass-o"></i> <span localize="age"></span></th>
+                    </tr>
+                    </thead>
+                    <tr ng-repeat="ticket in supportCtrl.tickets track by ticket.id">
+                        <td>#{{ticket.number}}</td>
+                        <td localize="{{ 'complexity_' + ticket.complexity }}"></td>
+                        <td>{{ ticket.employeeName}}</td>
+                        <td localize="x_hours" localize-data-hours="{{ticket.ageInHours}}"></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <div class="item team-configuration" ng-if="supportCtrl.team != null">
+            <h3>{{ supportCtrl.team.name}}</h3>
+            <div class="content">
+                <div class="margin alert alert-info" localize="support_team_description">
+                </div>
+                <table class="medium">
+                    <tr>
+                        <td class="width50" localize="name" ng-model="supportCtrl.team.name"></td>
+                        <td class="width50">
+                            <input type="text" ng-model="supportCtrl.team.name">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td localize="ticket_types"></td>
+                        <td>
+                            <table>
+                                <tr>
+                                    <td style="width: 1%"><input type="checkbox" ng-model="supportCtrl.team.low"
+                                                                 id="low-complexity"></td>
+                                    <td><label for="low-complexity" localize="x_complexity" localize-data-complexity="{{ supportCtrl.strings.complexity_Low }}"></label></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" ng-model="supportCtrl.team.medium"
+                                               id="medium-complexity"></td>
+                                    <td><label for="medium-complexity" localize="x_complexity" localize-data-complexity="{{ supportCtrl.strings.complexity_Medium }}"></label></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox" ng-model="supportCtrl.team.high" id="high-complexity">
+                                    </td>
+                                    <td><label for="high-complexity" localize="x_complexity" localize-data-complexity="{{ supportCtrl.strings.complexity_High }}"></label></td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td>
+                            <button class="small red" localize="delete_team"
+                                    ng-click="supportCtrl.deleteTeam()"></button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <hr class="secondary">
+                        </td>
+                    </tr>
+                </table>
+                <h4>
+                    <span localize="team_members"></span>
+
+                    <tooltip key="add_team_member_tooltip"></tooltip>
+                </h4>
+                <div class="alert alert-danger text-center text-bold" localize="no_team_members" ng-if="supportCtrl.teamMembers.length == 0"></div>
+                <table>
+                    <tr ng-repeat="employee in supportCtrl.teamMembers track by employee.id">
+                        <td>{{ employee.name }}</td>
+                        <td>
+                            <span localize="{{employee.level}}"></span>
+                            ({{employee.speed | number: 0}}%)
+                        </td>
+                        <td class="text-right" style="width: 15%">
+                            <button class="cancel small" ng-click="supportCtrl.goToEmployee(employee)"><i
+                                    class="fa fa-user"></i></button>
+                            <button class="red small" ng-click="supportCtrl.removeMember(employee)"><i
+                                    class="fa fa-times"></i></button>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="cancel-bar" ng-show="supportCtrl.team != null">
+    <button class="red" ng-click="supportCtrl.team = null" localize="back"></button>
+</div>

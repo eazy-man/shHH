@@ -1,0 +1,74 @@
+<h1>
+    <i class="fa fa-money"></i>
+    <span localize="{{project.name}}"></span>
+    <i class="fa fa-times pull-right close-button" ng-click="projectCtrl.close()"></i>
+</h1>
+
+<div class="flex-row margin-top-40">
+    <div class="flex1 padding text-center flex-column" style="align-items: center">
+        <img ng-src="{{ projectCtrl.thumbnail }}" class="project-image">
+        <div class="large">
+            <p localize="{{project.name}}_description"></p>
+            <p class="color-green margin-top">
+                <i class="fa fa-plus-circle"></i> <span>{{ projectCtrl.bonusText }}</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="flex1 padding text-center flex-column" style="justify-content: space-around;" ng-if="$root.settings.investmentProjects[project.name].completed != true">
+        <div>
+            <h3 localize="estimated_time_succeed" style="margin-bottom: 0"></h3>
+            <h4 localize="x_days" localize-data-days="{{projectCtrl.estimatedDays}}"></h4>
+        </div>
+
+        <div>
+            <h3 localize="daily_budget_label"></h3>
+            <rzslider rz-slider-options="projectCtrl.sliderOptions"
+                      rz-slider-model="$root.settings.investmentProjects[project.name].dailyBudget"></rzslider>
+        </div>
+
+        <div ng-show="projectCtrl.percentageCompleted === null">
+            <h3 localize="payment_upfront" style="margin-bottom: 0"></h3>
+            <h4>{{ projectCtrl.upfrontPayment | currency:'$':0 }}</h4>
+            <button class="green" localize="start_project" ng-click="projectCtrl.startProject()"></button>
+        </div>
+
+        <div ng-show="projectCtrl.percentageCompleted != null">
+            <table>
+                <tr>
+                    <td colspan="2">
+                        <div class="progressBar">
+                            <div class="indicator blue" style="width: {{ projectCtrl.percentageCompleted }}%">
+                                <span>{{ projectCtrl.percentageCompleted }}%</span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td localize="money_invested"></td>
+                    <td class="text-bold">{{ projectCtrl.invested | currency: '$':0 }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button class="red margin-top" localize="cancel_project" ng-click="projectCtrl.cancelProject()"></button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex1 padding text-center flex-column" style="justify-content: center;" ng-if="$root.settings.investmentProjects[project.name].completed == true">
+        <h3 localize="in_production" style="margin-bottom: 0" class="padding-bottom"></h3>
+        <h4 class="padding" localize="investment_project_completed_description"></h4>
+
+        <div class="border-top-2">
+            <h4 localize="money_invested"></h4>
+            <h4 class="color-red">{{ projectCtrl.invested | currency: '$':0 }}</h4>
+        </div>
+
+        <div class="border-top-2">
+            <h4 localize="yesterdays_revenue"></h4>
+            <h4 class="color-green">{{ $root.settings.investmentProjects[project.name].revenueYesterday | currency:'$':0}}</h4>
+        </div>
+    </div>
+</div>

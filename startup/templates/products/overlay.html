@@ -1,0 +1,59 @@
+<!-- UI Overlay -->
+<div class="product create" ng-click="ctrl.createProduct()">
+    <h1><i class="fa fa-plus-circle"></i> <span localize="create_product"></span></h1>
+</div>
+
+<div class="product" ng-click="ctrl.showProduct(productInfo.product)"
+     ng-repeat="productInfo in ctrl.products track by productInfo.product.id"
+     uib-tooltip="{{ ctrl.potentialUsersWarning }}"
+     tooltip-append-to-body="true"
+     tooltip-enable="productInfo.progress.users.total >= productInfo.progress.users.potentialUsers"
+     tooltip-placement="left">
+    <h1>
+        <img ng-src="{{ productInfo.product.logoPath }}" ng-if="productInfo.product.logoPath != null" class="website-logo">
+        {{ productInfo.product.name }}
+    </h1>
+    <div class="info" ng-if="productInfo.product.id">
+
+        <div class="info-badge" tooltip-append-to-body="true" uib-tooltip="{{ ctrl.strings.global_position }}" tooltip-placement="top">
+            <i class="fa fa-trophy"></i>
+            <span class="monospaced">#{{ productInfo.product.position }}</span>
+        </div>
+
+        <div class="info-badge" ng-if="ctrl.showSupport" tooltip-append-to-body="true" uib-tooltip="{{ ctrl.strings.support_satisfaction }}" tooltip-placement="top">
+            <i class="fa fa-life-ring"></i>
+            <span class="monospaced">{{productInfo.progress.supportSatisfaction}}%</span>
+        </div>
+
+        <div class="info-badge" ng-class="{
+                'color-red': productInfo.progress.stats.performance.state == 'Critical',
+                'color-yellow': productInfo.progress.stats.performance.state == 'Unstable'
+             }"
+             tooltip-append-to-body="true" uib-tooltip="{{ ctrl.strings.server_usage }}" tooltip-placement="top">
+            <i class="fa fa-server"></i>
+            <span class="monospaced">{{productInfo.progress.stats.performance.serverUsage > 300 ? '>300' : productInfo.progress.stats.performance.serverUsage }}%</span>
+        </div>
+
+        <div class="info-badge"
+             ng-class="{'color-red flashing-label': productInfo.progress.users.total >= productInfo.progress.users.potentialUsers }"
+             tooltip-append-to-body="true" uib-tooltip="{{ ctrl.strings.potential_users_reached }}" tooltip-placement="top">
+            <i class="fa fa-users"></i>
+            <strong class="monospaced">{{productInfo.usersPercentage }}%</strong>
+        </div>
+
+        <div class="info-badge"
+             ng-class="{'color-red': productInfo.progress.users.totalChange <= 0 }"
+             tooltip-append-to-body="true" uib-tooltip="{{ ctrl.strings.user_growth }}" tooltip-placement="top">
+            <i class="fa fa-line-chart"></i>
+            <span class="monospaced">
+                <span ng-show="productInfo.progress.users.totalChange > 0">+</span>{{
+                productInfo.progress.users.totalChange | number: 0 }}</span>
+        </div>
+
+    </div>
+    <div class="next-milestone" ng-if="productInfo.nextMilestone">
+        <span class="dimmed" localize="next_milestone"></span> <br>
+        <strong ng-bind-html="productInfo.nextMilestone"></strong>
+    </div>
+</div>
+

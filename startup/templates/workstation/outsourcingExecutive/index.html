@@ -1,0 +1,62 @@
+<!-- Select Mode -->
+<div class="select-mode" ng-if="outsourcingCtrl.view == null && outsourcingCtrl.task == null">
+    <h3 localize="select_mode"></h3>
+
+    <div class="item-list horizontal">
+        <div class="item hover" ng-click="outsourcingCtrl.startSearching()">
+            <h3 localize="search_for_tasks"></h3>
+            <div class="content">
+                <img src="images/receive-money.png">
+                <p localize="search_for_tasks_description"></p>
+            </div>
+        </div>
+
+        <div class="item hover" ng-click="outsourcingCtrl.view = 'task'">
+            <h3 localize="create_task"></h3>
+            <div class="content">
+                <img src="images/send-money.png">
+                <p localize="create_task_description"></p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task -->
+<outsourcing-task task="outsourcingCtrl.task" ng-if="outsourcingCtrl.task != null"></outsourcing-task>
+
+<create-task class="item-list horizontal flex-row" ng-if="outsourcingCtrl.view == 'task' && $root.selectedWorkstation.employee.task == null"></create-task>
+
+<div class="cancel-bar" ng-if="outsourcingCtrl.view == 'task'">
+    <button class="red" ng-click="outsourcingCtrl.view = null" localize="cancel"></button>
+</div>
+
+<!-- Search for task -->
+<div ng-if="outsourcingCtrl.view == 'search'" class="padding searching-for-task">
+
+    <h3 localize="searching_for_new_task"></h3>
+    <div class="progressBar big">
+        <div class="indicator blue" style="width: {{ outsourcingCtrl.taskProgress }}%">
+                <span>
+                    <strong>{{ outsourcingCtrl.taskProgress }}%</strong>
+                </span>
+        </div>
+    </div>
+
+    <table class="width-auto margin-auto margin-top">
+        <tr>
+            <td localize="limit_to_researched_com"></td>
+            <td>
+                <div class="toggle-switch margin-left"
+                     ng-class="{ active: $root.selectedWorkstation.employee.limitToAvailableTasks }"
+                     ng-click="$root.selectedWorkstation.employee.limitToAvailableTasks = !$root.selectedWorkstation.employee.limitToAvailableTasks">
+                    <span></span>
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="text-center">
+        <button class="cancel small" localize="go_to_tasks" ng-click="$root.setActiveView('outsourcing')"></button>
+        <button class="red big" localize="cancel" ng-click="outsourcingCtrl.cancelSearch()"></button>
+    </div>
+</div>

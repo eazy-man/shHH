@@ -1,0 +1,103 @@
+<h1>
+    <i class="fa fa-users"></i>
+    <span localize="employees"></span>
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<!-- Scrollbar -->
+<div class="tab-content optimize-scroll">
+    <!-- Employees -->
+    <div class="padding" ng-if="ctrl.tab == 'employees'">
+        <div class="flex-row">
+            <div class="flex1 flex-column">
+                <h5 class="text-bold" localize="dropdown_selection_introduction"></h5>
+                <div class="small"
+                     dropdown-select="ctrl.actions"
+                     dropdown-model="ctrl.selectedAction"
+                     dropdown-item-label="label"
+                     dropdown-onchange="ctrl.actionChanged(selected)"></div>
+            </div>
+            <div class="flex1 flex-column" style="align-items: flex-end;">
+                <h5 class="text-bold" localize="employee_type"></h5>
+                <div class="small"
+                     dropdown-select="ctrl.employeeTypes"
+                     dropdown-model="ctrl.selectedEmployeeType"
+                     dropdown-item-label="label"></div>
+            </div>
+        </div>
+
+        <hr class="big small">
+
+        <table class="medium hovered" ts-wrapper id="employees-table" ts-get-table-data-function="ctrl.getDataFn">
+            <thead>
+            <tr>
+                <th ts-criteria="selected">
+                    <span ng-click="ctrl.toggleAll($event)"><input type="checkbox" ng-model="ctrl.toggleAllStatus" style="pointer-events: none"/></span>
+                </th>
+                <th ts-criteria="employeeTypeName" localize="type"></th>
+                <th ts-criteria="employeeName" localize="name"></th>
+                <th ts-criteria="ageInYears" localize="age"></th>
+                <th ts-criteria="employeeLevelPriority" localize="level"></th>
+                <th ts-criteria="mood" localize="mood"></th>
+                <th ts-criteria="totalSpeed">
+                    <i tooltip-append-to-body="true" uib-tooltip="{{ ctrl.strings.tip_speed }}" class="fa fa-tachometer"></i>
+                    <span localize="speed"></span>
+                </th>
+                <th ts-criteria="salary" localize="salary"></th>
+                <th ts-criteria="label" localize="status" class="status-row"></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr ng-repeat="row in ctrl.rows track by row.id"
+                ng-click="ctrl.showEmployee(row)" ts-repeat ts-hide-no-data
+                ng-class="{ 'color-red': ['Idle', 'Unassigned'].includes(row.employeeState), 'color-blue': row.unseated }">
+                <td ng-click="ctrl.toggleEmployee(row, $event)">
+                    <input type="checkbox" ng-model="row.selected" style="pointer-events: none">
+                </td>
+                <td ts-name="{{ ::row.employeeTypeLocalized }}">
+
+                    <icon class="icon {{ ::row.employeeTypeName }}"
+                          uib-tooltip="{{ ::row.employeeTypeLocalized }}"
+                          tooltip-append-to-body="true"></icon>
+                </td>
+                <td class="employee-name">
+                    <div class="avatar-image tiny" style="background-image: url('assets/people/{{ ::row.employeeAvatar }}.png')"></div>
+                    <span class="flex1">
+                        {{ ::row.employeeName }}
+                        <i class="fa fa-star color-yellow" ng-if="row.superstar" tooltip-append-to-body="true" tooltip="{{ctrl.strings.superstar_employee}}"></i>
+                    </span>
+
+                </td>
+                <td>
+                    {{ row.ageInYears }}
+                </td>
+                <td ts-name="{{ ::row.employeeLevelPriority }}">
+                    <i class="fa" ng-class="::{
+                        'fa-star-o': row.employeeLevel == 'Beginner',
+                        'fa-star-half-o': row.employeeLevel == 'Intermediate',
+                        'fa-star': row.employeeLevel == 'Expert' }"></i>
+                </td>
+                <td>
+                    {{ row.mood}}%
+                </td>
+                <td>
+                    {{ row.employeeSpeed.total }}% <span class="dimmed">({{ row.employeeSpeed.baseSpeed }}%)</span>
+                    <i class="fa fa-arrow-circle-o-up color-green" tooltip="{{ctrl.strings.ready_for_upgrade}}" tooltip-append-to-body="true" ng-if="row.readyForUpgrade"></i>
+                </td>
+                <td>
+                    {{ ::row.salaryFormatted }}
+                </td>
+                <td>
+                    <span class="task-label" ng-bind-html="::row.label"></span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+        <p ng-if="ctrl.rows.length == 0 && settings.unassignedEmployees.length == 0"
+           localize="no_employees" class="color-red text-center"></p>
+    </div>
+
+    <!-- Recruitment -->
+    <recruitment class="padding tab-content" ng-if="ctrl.tab == 'recruitment'"></recruitment>
+    <candidates class="tab-content" ng-if="ctrl.tab == 'candidates'"></candidates>
+</div>

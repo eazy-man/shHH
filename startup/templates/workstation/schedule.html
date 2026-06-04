@@ -1,0 +1,63 @@
+<div class="flex-column height100">
+    <div class="flex-row flex4">
+        <div class="flex3 padding">
+            <!-- Working Hours -->
+            <h3 localize="working_hours" class="text-center" style="margin-top: 0"></h3>
+
+            <rzslider rz-slider-model="slider.minValue"
+                      rz-slider-high="slider.maxValue"
+                      rz-slider-options="slider.options"></rzslider>
+
+            <p class="text-center margin-top" localize="day_length" localize-data-length="{{ scheduleCtrl.totalHours}}"></p>
+
+            <h4 class="text-center">
+
+                <span localize="mood_decrease_per_day"></span>:
+                <strong class="color-red" ng-show="scheduleCtrl.exhaustion.total >= 7" localize="high"></strong>
+                <strong class="color-yellow" ng-show="scheduleCtrl.exhaustion.total <= 7 && scheduleCtrl.exhaustion.total >= 5" localize="medium"></strong>
+                <strong class="color-green" ng-show="scheduleCtrl.exhaustion.total < 5" localize="low"></strong>
+            </h4>
+
+            <p class="dimmed text-center padding" localize="schedule_tip"></p>
+
+            <div class="text-center color-red margin-bottom" ng-if="scheduleCtrl.showWarning" localize="different_schedule" localize-data-schedule="{{scheduleCtrl.currentSchedule}}"></div>
+        </div>
+        <div class="flex2 padding">
+            <h4 localize="allow_salary_raise"></h4>
+            <p localize="allow_salary_raise_description"></p>
+            <div class="toggle-switch"
+                 ng-class="{ active: $root.selectedWorkstation.employee.autoGrantRaise }"
+                 ng-click="$root.selectedWorkstation.employee.autoGrantRaise = !$root.selectedWorkstation.employee.autoGrantRaise">
+                <span></span>
+            </div>
+        </div>
+    </div>
+    <div class="flex3">
+        <!-- Days Off -->
+        <div tooltip-html="scheduleCtrl.strings.feature_unavailable_intermediate" tooltip-enable="$root.selectedWorkstation.employee.level == 'Beginner'">
+            <h3 localize="days_off" class="text-center"></h3>
+
+            <div class="text-center" ng-class="{'disable-container': $root.selectedWorkstation.employee.level == 'Beginner' }">
+                <ul class="multi-toggle">
+                    <li ng-repeat="dayInfo in scheduleCtrl.weekDays track by dayInfo.day"
+                        ng-click="scheduleCtrl.clickDay(dayInfo.day, 'daysOff')"
+                        ng-class="{ active: dayInfo.daysOffActive, 'disable-container': dayInfo.trainingActive }">{{dayInfo.label}}</li>
+                </ul>
+            </div>
+        </div>
+
+        <hr>
+
+        <div tooltip-html="scheduleCtrl.strings.feature_unavailable_expert" tooltip-enable="$root.selectedWorkstation.employee.level != 'Expert'">
+            <h3 localize="training_days" class="text-center"></h3>
+
+            <div class="text-center" ng-class="{'disable-container': $root.selectedWorkstation.employee.level != 'Expert' }">
+                <ul class="multi-toggle">
+                    <li ng-repeat="dayInfo in scheduleCtrl.weekDays track by dayInfo.day"
+                        ng-click="scheduleCtrl.clickDay(dayInfo.day, 'trainingDays')"
+                        ng-class="{ active: dayInfo.trainingActive, 'disable-container': dayInfo.daysOffActive  }">{{dayInfo.label}}</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>

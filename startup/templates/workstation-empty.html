@@ -1,0 +1,58 @@
+<h1>
+    <span localize="empty_workstation"></span>
+    <i class="fa fa-times pull-right close-button" close-all-ui></i></h1>
+
+<div class="padding text-center" ng-if="ctrl.employeeSets.length == 0" >
+    <div class="alert alert-danger text-center" localize="no_available_employees_v2"></div>
+</div>
+
+
+<div class="padding tab-content" ng-if="ctrl.employeeSets.length != 0">
+    <p localize="select_employee_to_place" class="text-center text-bold"></p>
+
+    <table class="medium hovered margin-top" ts-wrapper id="employees-table" style="width: 90%; margin: 0 auto;">
+        <thead>
+        <tr>
+            <th ts-criteria="employeeTypeName" localize="type"></th>
+            <th ts-criteria="name" localize="name"></th>
+            <th ts-criteria="employeeLevelPriority" localize="level"></th>
+            <th ts-criteria="totalSpeed">
+                <i tooltip-append-to-body="true" uib-tooltip="{{ ctrl.strings.tip_speed }}" class="fa fa-tachometer"></i>
+                <span localize="speed"></span>
+            </th>
+            <th ts-criteria="dayHired" localize="hired" ts-default="descending"></th>
+            <th></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="row in ctrl.employeeSets"
+            ng-click="ctrl.placeEmployee(row.id)"
+            ts-repeat ts-hide-no-data>
+            <td ts-name="{{ row.employeeTypeLocalized }}">
+                <icon class="icon {{ row.employeeTypeName }}"
+                      uib-tooltip="{{ row.employeeTypeLocalized }}"
+                      tooltip-append-to-body="true"></icon>
+            </td>
+            <td>
+                <div class="employee-name">
+                    <div class="avatar-image tiny" style="background-image: url('assets/people/{{ ::row.avatar }}.png')"></div>
+                    <span class="flex1">{{ row.name }}</span>
+                </div>
+            </td>
+            <td ts-name="{{ row.employeeLevelPriority }}">
+                <i class="fa" ng-class="{
+                        'fa-star-o': row.level == 'Beginner',
+                        'fa-star-half-o': row.level == 'Intermediate',
+                        'fa-star': row.level == 'Expert' }"></i>
+            </td>
+            <td>
+                {{ row.employeeSpeed.total }}% <span class="dimmed">({{ row.employeeSpeed.baseSpeed }}%)</span>
+            </td>
+            <td localize="topbar_day" localize-data-day="{{ row.dayHired }}"></td>
+            <td class="text-right">
+                <button localize="select"></button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

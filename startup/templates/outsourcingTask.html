@@ -1,0 +1,163 @@
+<div class="flex-row height100">
+
+    <!-- Left column -->
+    <div class="flex3 flex-column" style="justify-content: space-between;">
+        <div class="flex-super-center flex-column competitor">
+            <table class="text-uppercase">
+                <tr>
+                    <td colspan="2" class="text-center">
+                        <img ng-src="{{outsourcingTaskCtrl.competitorProduct.logoPath}}" class="companyLogo small">
+                        <h4 class="text-bold align-middle inline-block">{{ outsourcingTaskCtrl.competitorProduct.name }}</h4>
+                    </td>
+                </tr>
+                <tr ng-if="task.competitorProductId && false">
+                    <td localize="relationship"></td>
+                    <td class="color-green text-bold" localize="good"></td>
+                </tr>
+                <tr>
+                    <td localize="deadline"></td>
+                    <td class="text-bold" localize="x_days" localize-data-days="{{ task.deadline.total / 24 }}"></td>
+                </tr>
+                <tr>
+                    <td>
+                        <span localize="penalty_fee"></span>
+                        <tooltip key="tooltip_penalty_fee"></tooltip>
+                    </td>
+                    <td class="text-bold color-red">{{ outsourcingTaskCtrl.penaltyFee | currency:'$':0 }}</td>
+                </tr>
+                <tr>
+                    <td localize="outsourcing_winner"></td>
+                    <td class="text-bold">{{ outsourcingTaskCtrl.winner }}</td>
+                </tr>
+                <tr>
+                    <td>
+                        <span localize="est_market_value"></span>
+                        <tooltip key="tooltip_est_market_value"></tooltip>
+                    </td>
+                    <td class="text-bold">{{ outsourcingTaskCtrl.marketValue | currency:'$':0 }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="item-list">
+            <div class="item mb-0">
+                <div class="content">
+                    <table>
+                        <tr ng-repeat="stack in outsourcingTaskCtrl.stacks track by stack.component.name">
+                            <td style="width: 1%">
+                                <component component="stack.component"
+                                           show-demand="true"
+                                           ng-disabled="!stack.isAvailableInInventory"
+                                           show-inventory-amount="true"
+                                           stack-amount="::stack.amount"
+                                           class="small"></component>
+                            </td>
+                            <td>
+                                <b>{{ stack.amount }}x</b> {{ stack.name }}
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right column -->
+    <div class="flex4 flex-column">
+        <div class="progressBar margin" ng-show="task.hoursLeft > 0">
+            <div class="indicator blue" style="width: {{ (24-task.hoursLeft) * 100 / 24 }}%">
+                <span localize="hours_left" localize-data-hours="{{ task.hoursLeft }}"></span>
+            </div>
+        </div>
+        <h4 class="color-red text-center" localize="outsourcing_expired" ng-show="task.hoursLeft <= 0"></h4>
+
+        <!-- Offers -->
+        <div class="item-list flex4" id="offers">
+            <div class="item" ng-class="{active: offer.isPlayer, green: offer.offer == task.winnerPrice }" ng-repeat="offer in outsourcingTaskCtrl.offers track by offer.offer">
+                <div class="content flex-row" style="justify-content: space-between;">
+                    <div>
+                        <img ng-src="{{ offer.logoPath }}" class="companyLogo small"/>
+                        <span localize="outsourcing_x_sent_offer" localize-data-name="{{offer.name}}" class="align-middle"></span>
+                    </div>
+                    <div class="large text-bold">{{ offer.offer | currency:'$':0 }}</div>
+                </div>
+            </div>
+
+            <div class="alert alert-info margin text-center text-bold" ng-show="outsourcingTaskCtrl.offers.length == 0" localize="outsourcing_no_offers"></div>
+        </div>
+
+        <!-- Send Offer -->
+        <div class="item-list send-offer">
+            <div class="item mb-0">
+                <div class="content">
+                    <!-- Competitor task -->
+                    <div ng-if="task.competitorProductId != null">
+                        <div class="alert alert-success text-center text-bold" ng-show="outsourcingTaskCtrl.isBidWinner && task.hoursLeft > 0"
+                             localize="outsourcing_active_bid_winner"></div>
+
+                        <div class="alert alert-danger text-center text-bold" ng-show="!outsourcingTaskCtrl.isBidWinner && task.hoursLeft <= 0"
+                             localize="outsourcing_you_lost"></div>
+
+                        <div class="alert alert-success text-center text-bold" ng-show="outsourcingTaskCtrl.isBidWinner && task.hoursLeft <= 0 && !task.delivered">
+                            <div localize="outsourcing_you_won" localize-data-hours="{{task.deadline.total - task.deadline.completed}}"></div>
+                            <button class="blue margin-top"
+                                    localize="deliver_now"
+                                    localize-data-price="{{ task.winnerPrice }}"
+                                    localize-data-price-format="currency0"
+                                    ng-class="{ 'disabled': !outsourcingTaskCtrl.hasAllRequirements }"
+                                    tooltip="{{ outsourcingTaskCtrl.strings.missing_requirements }}"
+                                    tooltip-enable="!outsourcingTaskCtrl.hasAllRequirements"
+                                    ng-click="outsourcingTaskCtrl.hasAllRequirements && outsourcingTaskCtrl.deliverNow()"></button>
+                        </div>
+
+                        <div class="alert alert-info text-center text-bold" ng-show="task.delivered && task.won" localize="outsourcing_task_delivered"></div>
+
+                        <div ng-show="!outsourcingTaskCtrl.isBidWinner && task.hoursLeft > 0">
+                            <div ng-show="outsourcingTaskCtrl.offersLeft > 0">
+                                <div class="text-center">
+                                    <div class="margin-bottom">
+                                        <i class="fa fa-minus-circle" ng-click="outsourcingTaskCtrl.changeValue(-outsourcingTaskCtrl.stepSize)"></i>
+                                        <input type="text" restrict-to="[0-9]" class="small" ng-model="outsourcingTaskCtrl.offer">
+                                        <i class="fa fa-plus-circle" ng-click="outsourcingTaskCtrl.changeValue(outsourcingTaskCtrl.stepSize)"></i>
+                                    </div>
+                                    <rzslider class="grey"
+                                              rz-slider-options="outsourcingTaskCtrl.sliderOptions"
+                                              rz-slider-model="outsourcingTaskCtrl.offer"></rzslider>
+                                </div>
+                                <div class="flex-row margin-top">
+                                    <div class="flex1"></div>
+                                    <div class="flex2 text-center">
+                                        <button class="blue small" localize="send_offer" ng-click="outsourcingTaskCtrl.sendOffer()"></button>
+                                    </div>
+                                    <div class="flex1 text-right" localize="offers_left_x" localize-data-amount="{{ outsourcingTaskCtrl.offersLeft }}"></div>
+                                </div>
+                            </div>
+                            <div ng-show="outsourcingTaskCtrl.offersLeft == 0" class="alert alert-info text-center" localize="outsourcing_no_more_offers"
+                                 localize-data-offers="{{task.maxOffers}}"></div>
+                        </div>
+                    </div>
+
+                    <!-- Players own task -->
+                    <div ng-if="task.competitorProductId == null" class="text-center">
+
+
+                        <div class="alert alert-info text-center text-bold" ng-if="task.hoursLeft > 0">
+                            <span localize="outsourcing_waiting_for_bids"></span>
+                            <div>
+                                <button class="red small margin-top" localize="cancel_task" ng-click="outsourcingTaskCtrl.cancelTask()"></button>
+                            </div>
+                        </div>
+                        <div class="alert alert-info text-center text-bold" ng-if="task.hoursLeft <= 0 && task.offers.length > 0 && task.delivered != true">
+                            <span localize="outsourcing_awaiting_delivery"
+                                  localize-data-hours="{{ task.deadline.total - task.deadline.completed }}"></span>
+                            <div class="progressBar small margin-top">
+                                <div class="indicator blue" style="width: {{ task.deadline.completed * 100 / task.deadline.total | floor }}%"></div>
+                            </div>
+                            <button class="red small margin-top" localize="cancel_task" ng-click="outsourcingTaskCtrl.cancelTask()"></button>
+                        </div>
+                        <div class="alert alert-success text-center text-bold" ng-if="task.delivered" localize="outsourcing_task_delivered"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

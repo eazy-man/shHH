@@ -1,0 +1,11 @@
+<div class="padding text-center">
+    <div class="alert alert-info margin-bottom" localize="manager_production_tip"></div>
+
+    <div class="flex-super-center flex-row">
+        <h4 localize="production_plan" class="margin-right"></h4>
+        <div dropdown-select="$root.settings.productionPlans" dropdown-model="ctrl.selectedPlan"
+             dropdown-item-label="name" dropdown-onchange="ctrl.onPlanChange(selected)"></div>
+    </div>
+
+    <button localize="manage_production_plans" class="blue small margin-top" ng-click="ctrl.goToProductionPlans()"></button>
+</div>

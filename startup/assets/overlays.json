@@ -1,0 +1,29 @@
+{
+
+"images": [
+    "assets/overlays-0.webp"
+],
+
+"framerate": 20,
+"frames": [
+    [11, 11, 434, 163, 0, 0, 0],
+    [457, 11, 61, 61, 0, 0, 0],
+    [530, 11, 50, 50, 0, 0, 0],
+    [592, 11, 196, 122, 0, 0, 0],
+    [11, 186, 456, 197, 0, 0, 0]
+],
+
+"animations": {
+    "employee": { "frames": [0] },
+    "emptydesk - Copy": { "frames": [1] },
+    "emptydesk": { "frames": [2] },
+    "rack": { "frames": [3] },
+    "thought": { "frames": [4] }
+},
+
+"texturepacker": [
+        "SmartUpdateHash: $TexturePacker:SmartUpdate:5d37d1506bef2fdee608c732f75ba6f8:b56701befa33964940521a40dbab9184:95995bac89402aee057c804cb798551a$",
+        "Created with TexturePacker (https://www.codeandweb.com/texturepacker) for EaselJS"
+]
+
+}

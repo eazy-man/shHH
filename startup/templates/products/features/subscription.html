@@ -1,0 +1,40 @@
+<div class="flex-row subscriptions-container">
+    <div class="flex1 flex-column">
+        <div class="flex1 shadow-box price-per-month">
+            <h4 localize="price_per_month"></h4>
+            <p class="dimmed" localize="subscriptions_price_description"></p>
+            <rzslider rz-slider-options="featuresSubscriptionCtrl.subscriptionsSlider"
+                      rz-slider-model="$parent.featuresCtrl.selectedFeature.instance.pricePerMonth"
+                      class="grey"></rzslider>
+        </div>
+
+        <div class="flex1 shadow-box dissatisfaction">
+            <h4 localize="dissatisfaction"
+                tooltip="{{featuresSubscriptionCtrl.subscriptions_satisfaction_description}}"></h4>
+            <h3 class="color-red text-bold">{{ featuresSubscriptionCtrl.selectedFeature.instance.dissatisfaction
+                }}%</h3>
+            <h4 localize="estimated_daily_revenue"
+                tooltip="{{ featuresSubscriptionCtrl.subscriptions_revenue_description }}"></h4>
+            <h3 class="color-green text-bold">{{ featuresSubscriptionCtrl.dailyRevenueEstimate | currency:'$':0 }}</h3>
+        </div>
+    </div>
+
+    <div class="flex1 shadow-box flex-column premium-features">
+        <h4 localize="premium_features"></h4>
+        <p class="padding dimmed" localize="subscriptions_premium_users_description"></p>
+        <div class="premium-features-container">
+            <table class="striped width80">
+                <tr ng-repeat="feature in featuresSubscriptionCtrl.subscriptionFeatures track by feature.name">
+                    <td localize="{{feature.name}}" class="text-left"></td>
+                    <td class="text-right">
+                        <div class="toggle-switch"
+                             ng-click="featuresSubscriptionCtrl.clickSubscriptionFeature(feature.name)"
+                             ng-class="{active: feature.selected }">
+                            <span></span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,44 @@
+<table class="stats">
+    <tr>
+        <td localize="users_w_adblockers" class="dimmed width70"></td>
+        <td>{{ productCtrl.productProgress.users.adblockers.raw }}%</td>
+    </tr>
+    <tr>
+        <td localize="ad_blockers_obfuscated" class="dimmed"></td>
+        <td class="color-green">{{ productCtrl.productProgress.users.adblockers.obfuscated }}%</td>
+    </tr>
+    <tr class="large text-bold">
+        <td localize="final_result" class="dimmed"></td>
+        <td>{{ productCtrl.productProgress.users.adblockers.final }}%</td>
+    </tr>
+</table>
+
+<hr>
+
+<h3 localize="efficiency_x" localize-data-percentage="{{featuresObfuscatorCtrl.selectedFeature.instance.efficiency}}"></h3>
+
+<ul class="multi-toggle">
+    <li ng-repeat="i in [1,5,10]"
+        ng-click="featuresObfuscatorCtrl.changeAmount(i)"
+        ng-class="{ active: featuresObfuscatorCtrl.efficiencyAmount == i, disabled: featuresObfuscatorCtrl.maxEfficiency < (featuresObfuscatorCtrl.selectedFeature.efficiency + i) }"
+        uib-tooltip="{{ featuresObfuscatorCtrl.maxText }}"
+        tooltip-append-to-body="true"
+        tooltip-enable="featuresObfuscatorCtrl.level.maxEfficiency <= featuresObfuscatorCtrl.selectedFeature.instance.efficiency">
+        +{{i}}%
+    </li>
+</ul>
+<div>
+    <component component="::stack.component"
+               class="small"
+               stack-amount="stack.amount"
+               show-inventory-amount="true"
+               ng-disabled="!stack.isAvailableInInventory"
+               ng-repeat="stack in featuresObfuscatorCtrl.stacks track by stack.component.name">
+    </component>
+</div>
+
+<button class="blue margin-top"
+        ng-disabled="!featuresObfuscatorCtrl.upgradeReady"
+        ng-click="featuresObfuscatorCtrl.upgrade()"
+        localize="upgrade"
+></button>

@@ -1,0 +1,124 @@
+<div class="item-list flex-row">
+    <!-- Configure -->
+    <div class="item flex1" style="margin-right: 0; margin-bottom: 0;">
+        <h3 localize="targeting"></h3>
+
+        <div class="content">
+            <div class="section">
+                <h4 localize="feature_to_promote"></h4>
+                <div dropdown-select="createCtrl.features"
+                     dropdown-model="createCtrl.selectedFeature"
+                     dropdown-item-label="label" style="width: 95%">
+                </div>
+            </div>
+
+            <div class="section" ng-class="{ 'disabled': !createCtrl.marketingPackage.targeting.gender }"
+                 tooltip="{{ createCtrl.filterNotAvailableString}}"
+                 tooltip-enable="!createCtrl.marketingPackage.targeting.gender">
+                <h4 localize="gender"></h4>
+                <ul class="multi-toggle"
+                    ng-class="{ 'disable-container': !createCtrl.marketingPackage.targeting.gender }">
+                    <li ng-click="createCtrl.newCampaign.gender = entry.name" ng-class="{active: entry.selected }"
+                        ng-repeat="entry in createCtrl.genders track by entry.name">
+                        <i ng-if="entry.isMatch != null" class="fa"
+                           ng-class="{ 'fa-times-circle': !entry.isMatch, 'fa-check-circle': entry.isMatch }"></i> <span
+                            localize="{{ entry.name || 'any' }}"></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="section" ng-class="{ 'disabled': !createCtrl.marketingPackage.targeting.age }"
+                 tooltip="{{ createCtrl.filterNotAvailableString}}"
+                 tooltip-enable="!createCtrl.marketingPackage.targeting.age">
+                <h4 localize="age"></h4>
+                <ul class="multi-toggle" ng-class="{ 'disable-container': !createCtrl.marketingPackage.targeting.age }">
+                    <li ng-click="createCtrl.newCampaign.age = entry.name" ng-class="{active: entry.selected }"
+                        ng-repeat="entry in createCtrl.ages track by entry.name">
+                        <i ng-if="entry.isMatch != null" class="fa"
+                           ng-class="{ 'fa-times-circle': !entry.isMatch, 'fa-check-circle': entry.isMatch }"></i> <span
+                            localize="{{ entry.name || 'any' }}"></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="section" ng-class="{ 'disabled': !createCtrl.marketingPackage.targeting.interests }"
+                 tooltip="{{ createCtrl.filterNotAvailableString}}"
+                 tooltip-enable="!createCtrl.marketingPackage.targeting.interests">
+                <h4 localize="interests"></h4>
+                <ul class="multi-toggle-grid" style="width: 95%"
+                    ng-class="{ 'disable-container': !createCtrl.marketingPackage.targeting.interests }">
+                    <li ng-repeat="interest in createCtrl.marketingInterests track by interest.name"
+                        ng-click="createCtrl.clickInterest(interest)" ng-class="{active: interest.selected}">
+                        <i ng-if="interest.isMatch != null" class="fa"
+                           ng-class="{ 'fa-times-circle': !interest.isMatch, 'fa-check-circle': interest.isMatch }"></i>
+                        <span localize="{{ interest.name}}"></span>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="section">
+                <button localize="create_campaign" ng-click="createCtrl.createCampaign()" ng-disabled="!createCtrl.canCreateCampaign"></button>
+                <button class="cancel" ng-click="$parent.listCtrl.view = null" localize="cancel"></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-column flex1">
+        <div class="item" style="margin-bottom: 0">
+            <h3>
+                <i class="fa fa-users"></i> <span localize="reach"></span>
+            </h3>
+            <div class="content">
+                <table class="text-center margin-bottom">
+                    <tr>
+                        <td class="width50" ng-class="{ 'color-red animated infinite flash': createCtrl.reach < 1000 }">
+                            <h4 localize="reach"></h4>
+                            {{ createCtrl.reach | number: 0 }}
+                        </td>
+                        <td>
+                            <h4 localize="cost_per_thousand"></h4>
+                            {{ createCtrl.cpm | currency }}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="item create-insight" style="margin-bottom: 0">
+            <h3>
+                <i class="fa fa-eye"></i> <span localize="insight"></span>
+            </h3>
+            <div class="content">
+                <div class="alert alert-danger" ng-if="createCtrl.hideInsight" localize="missing_insight"></div>
+                <table class="text-center margin-bottom" ng-if="!createCtrl.hideInsight">
+                    <tr>
+                        <td>
+                            <h4 localize="conversion_rate"></h4>
+                            <div class="text-bold">{{ createCtrl.conversionRate }}%</div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+        <div class="item flex1" style="margin-bottom: 0">
+            <h3>
+                <i class="fa fa-th"></i> <span localize="requirements"></span>
+            </h3>
+            <div class="content flex-super-center flex-column requirements-container">
+                <div class="alert alert-info text-center" ng-if="createCtrl.requirementStacks.length == 0"
+                     localize="no_requirements"></div>
+                <div class="margin-bottom">
+                    <component component="::stack.component"
+                               ng-disabled="!stack.isAvailableInInventory"
+                               stack-amount="stack.amount"
+                               class="small"
+                               ng-repeat="stack in createCtrl.requirementStacks track by stack.component.name"
+                               show-inventory-amount="true">
+                    </component>
+                </div>
+                <div ng-if="createCtrl.newCampaign.price > 0" class="text-center margin-top" ng-class="{ 'color-red animated flash infinite': createCtrl.newCampaign.price > $root.settings.balance }">
+                    <span class="text-bold">{{ createCtrl.newCampaign.price | currency:'$':0}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,113 @@
+<!-- Level -->
+<div class="flex1 shadow-box">
+    <h4 localize="level"></h4>
+    <p localize="level_tip2"></p>
+    <ul class="multi-toggle">
+        <li ng-repeat="i in [1,5,10,100,1000]"
+            ng-click="featuresUpgradeCtrl.level.maxLevel >= (featuresUpgradeCtrl.selectedFeature.instance.quality.current + i) && featuresUpgradeCtrl.changeAmount('level', i)"
+            ng-class="{ active: featuresUpgradeCtrl.levelAmount == i, disabled: featuresUpgradeCtrl.level.maxLevel < (featuresUpgradeCtrl.selectedFeature.instance.quality.current + i) }"
+            uib-tooltip="{{ featuresUpgradeCtrl.level.maxLevelReachedText }}"
+            tooltip-append-to-body="true"
+            tooltip-enable="featuresUpgradeCtrl.level.maxLevel < i">
+            +{{i}}
+        </li>
+    </ul>
+    <div>
+        <component component="::stack.component"
+                   class="small"
+                   stack-amount="stack.amount"
+                   show-inventory-amount="true"
+                   ng-disabled="!stack.isAvailableInInventory"
+                   ng-repeat="stack in featuresUpgradeCtrl.level.stacks track by stack.component.name">
+        </component>
+    </div>
+    <table class="medium">
+        <thead>
+        <tr>
+            <th>
+                <button class="red tiny" localize="downgrade"
+                        ng-disabled="featuresUpgradeCtrl.selectedFeature.instance.quality.current == 0"
+                        ng-click="featuresUpgradeCtrl.downgrade(featuresUpgradeCtrl.selectedFeature.instance)"></button>
+            </th>
+            <th class="width20" localize="level_x"
+                localize-data-level="{{featuresUpgradeCtrl.selectedFeature.instance.quality.current}}"></th>
+            <th class="width20" localize="level_x"
+                localize-data-level="{{featuresUpgradeCtrl.level.nextLevel}}"></th>
+        </tr>
+        </thead>
+        <tr>
+            <td class="dimmed" localize="required_cu_per_user"></td>
+            <td>{{ featuresUpgradeCtrl.level.beforeRequiredCu }}</td>
+            <td>{{ featuresUpgradeCtrl.level.afterRequiredCu }}</td>
+        </tr>
+        <tr>
+            <td class="dimmed" localize="potential_users"></td>
+            <td>{{featuresUpgradeCtrl.level.beforePotentialUsers | number: 0 }}</td>
+            <td>{{featuresUpgradeCtrl.level.afterPotentialUsers | number: 0 }}</td>
+        </tr>
+        <tr>
+            <td class="text-center" colspan="3">
+                <div class="alert alert-danger" ng-if="!featuresUpgradeCtrl.level.upgradeReady">
+                    {{featuresUpgradeCtrl.level.notReadyTooltip}}
+                </div>
+                <button class="blue"
+                        ng-if="featuresUpgradeCtrl.level.upgradeReady"
+                        ng-click="featuresUpgradeCtrl.level.upgradeReady && featuresUpgradeCtrl.upgrade(featuresUpgradeCtrl.level.requirements, 'Quality')"
+                        localize="upgrade_to_level"
+                        localize-data-level="{{ featuresUpgradeCtrl.selectedFeature.instance.quality.current + featuresUpgradeCtrl.levelAmount }}"
+                ></button>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- Efficiency -->
+<div class="flex1 shadow-box efficiency">
+    <h4 localize="efficiency"></h4>
+    <p localize="efficiency_tip"></p>
+    <div>
+        <component component="::stack.component"
+                   class="small"
+                   stack-amount="stack.amount"
+                   show-inventory-amount="true"
+                   ng-disabled="!stack.isAvailableInInventory"
+                   ng-repeat="stack in featuresUpgradeCtrl.efficiency.stacks track by stack.component.name">
+        </component>
+    </div>
+    <table class="medium">
+        <thead>
+        <tr>
+            <th class="width33"></th>
+            <th class="width33">{{ featuresUpgradeCtrl.selectedFeature.instance.efficiency.current }}%</th>
+            <th class="width33">
+                <span ng-if="featuresUpgradeCtrl.efficiency.nextPercentage <= featuresUpgradeCtrl.efficiency.maxPercentage">{{ featuresUpgradeCtrl.efficiency.nextPercentage }}%</span>
+                <span ng-if="featuresUpgradeCtrl.efficiency.nextPercentage > featuresUpgradeCtrl.efficiency.maxPercentage">-</span>
+
+            </th>
+        </tr>
+        </thead>
+        <tr>
+            <td class="dimmed width50" localize="required_cu_per_user"></td>
+            <td>{{ featuresUpgradeCtrl.efficiency.beforeRequiredCu }}</td>
+            <td>
+                <span ng-if="featuresUpgradeCtrl.efficiency.nextPercentage <= featuresUpgradeCtrl.efficiency.maxPercentage">{{ featuresUpgradeCtrl.efficiency.afterRequiredCu }}</span>
+                <span ng-if="featuresUpgradeCtrl.efficiency.nextPercentage > featuresUpgradeCtrl.efficiency.maxPercentage">-</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">&nbsp;</td>
+        </tr>
+        <tr>
+            <td class="text-center" colspan="3">
+                <div class="alert alert-danger" ng-if="!featuresUpgradeCtrl.efficiency.upgradeReady">
+                    {{featuresUpgradeCtrl.efficiency.notReadyTooltip}}
+                </div>
+                <button class="blue"
+                        ng-if="featuresUpgradeCtrl.efficiency.upgradeReady"
+                        ng-click="featuresUpgradeCtrl.upgrade(featuresUpgradeCtrl.efficiency.requirements, 'Efficiency')"
+                        localize="upgrade"
+                ></button>
+            </td>
+        </tr>
+    </table>
+</div>

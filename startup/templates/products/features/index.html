@@ -1,0 +1,217 @@
+<div class="item-list features-stats" ng-show="featuresCtrl.view == null && featuresCtrl.selectedFeature == null">
+    <div class="item overflow-visible">
+        <div class="content flex-row">
+            <div class="flex1 flex-super-center">
+                <div class="shadow-box width100" style="margin-right: 10px">
+                    <table>
+                        <tr>
+                            <td class="width70" localize="registered_users"></td>
+                            <td class="text-bold text-right monospaced">{{ $parent.ctrl.productProgress.users.total |
+                                number: 0 }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td localize="potential_users"></td>
+                            <td class="text-bold text-right monospaced">{{
+                                $parent.ctrl.productProgress.users.potentialUsers | number: 0 }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td localize="satisfaction"></td>
+                            <td class="text-right satisfaction"
+                                popover-title="{{featuresCtrl.title}}"
+                                popover-html="featuresCtrl.satisfactionPopover"
+                                popover-placement="bottom"
+                                popover-trigger="click"
+                                popover-append-to-body="false"
+                                style="padding: 0 !important;">
+                                <i class="smiley small"
+                                   ng-class="{ moody: $parent.ctrl.productProgress.users.satisfaction <= 70 && $parent.ctrl.productProgress.users.satisfaction > 50, sad: $parent.ctrl.productProgress.users.satisfaction <= 50 }"></i>
+                                <button class="tiny blue"><i class="fa fa-list"></i></button>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td localize="adblockers"></td>
+                            <td class="text-right text-bold">
+                                {{$parent.ctrl.productProgress.users.adblockers.final }}% <span class="dimmed">({{$parent.ctrl.productProgress.users.adblockers.raw }}%)</span>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="flex1 flex-super-center">
+                <div class="shadow-box width100">
+                    <table>
+                        <tr>
+                            <td localize="base_response_time"></td>
+                            <td class="text-bold text-right monospaced">{{featuresCtrl.userResponseTime}}ms</td>
+                        </tr>
+                        <tr>
+                            <td class="width70" localize="required_cu_per_user"></td>
+                            <td class="text-bold text-right monospaced">{{ featuresCtrl.requiredCuPerUser | number: 2 }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="width70" localize="max_feature_level"></td>
+                            <td class="text-bold text-right monospaced">{{ $parent.ctrl.framework.maxFeatureLevel }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+            <div class="flex1 flex-super-center flex-column">
+                <img ng-src="{{ $parent.ctrl.framework.logoPath }}" class="framework-logo">
+                <div class="text-bold" localize="{{ $parent.ctrl.framework.name }}"></div>
+                <button class="small blue margin-top"
+                        ng-click="featuresCtrl.showUpgradeFramework()"
+                        tooltip-html="featuresCtrl.upgradeFrameworkTooltip"
+                        tooltip-append-to-body="true"
+                        tooltip-enable="!featuresCtrl.frameworkUpgradeAvailable"
+                        ng-class="{ disabled: featuresCtrl.frameworkUpgradeAvailable == false }"
+                        localize="upgrade"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Features -->
+<div class="features" ng-show="featuresCtrl.view == null && featuresCtrl.selectedFeature == null">
+    <!-- Feature -->
+    <div class="feature preview" ng-repeat="info in featuresCtrl.instances track by info.instance.id">
+        <h2>
+            <div class="flex-super-center margin-bottom">
+                <span>{{ info.friendlyName }}</span>
+            </div>
+
+            <span class="dimmed">
+                    <i class="smiley small margin-right"
+                       tooltip="{{info.satisfaction}}%"
+                       tooltip-append-to-body="true"
+                       ng-class="{ moody: info.satisfaction <= 70 && info.satisfaction > 50, sad: info.satisfaction <= 50 }"
+                       ng-if="info.instance.dissatisfaction == null"
+                    ></i>
+                <i class="smiley small sad margin-right"
+                   tooltip="-{{info.instance.dissatisfaction}}%"
+                   tooltip-append-to-body="true"
+                   ng-if="info.instance.dissatisfaction != null"
+                ></i>
+                <span ng-if="info.feature.categoryName == 'Users'" localize="level_amount"
+                      localize-data-level="{{ info.instance.quality.current }}"
+                      ng-class="{'color-blue': info.instance.quality.current >= $parent.$parent.$parent.ctrl.framework.maxFeatureLevel }"></span>
+                <span ng-if="info.feature.categoryName == 'Users'"> /</span>
+                <span ng-if="info.feature.categoryName == 'Users'">{{info.requiredCu }} CU</span>
+                <span ng-if="info.feature.name == 'Subscriptions'" localize="amount_per_month"
+                      localize-data-amount="{{ info.instance.pricePerMonth }}"
+                      localize-data-amount-format="currency"></span>
+            </span>
+        </h2>
+
+        <div class="content">
+            <img ng-src="images/featureScreenshots/{{info.instance.featureName | lowercase }}.png"
+                 class="feature-image">
+            <div class="text-center">
+                <div class="flex-super-center margin-top">
+                    <div class="toggle-switch"
+                         ng-if="['Users', 'Enhancement'].includes(info.feature.categoryName)"
+                         ng-class="{ active: info.instance.activated }"
+                         ng-click="featuresCtrl.toggleFeature(info.instance)">
+                        <span></span>
+                    </div>
+                    <button localize="{{ info.feature.categoryName == 'Revenue' ? 'configure' : 'upgrade' }}"
+                            ng-click="featuresCtrl.selectedFeature = info"
+                            class="margin-left small"></button>
+                    <button localize="delete"
+                            ng-if="info.feature.categoryName == 'Revenue' && info.feature.name != 'Subscriptions'"
+                            ng-click="info.canBeDeleted && featuresCtrl.deleteFeature(info)"
+                            ng-class="{disabled: info.canBeDeleted == false}"
+                            tooltip="{{ featuresCtrl.cannotDeleteFeatureString }}"
+                            tooltip-append-to-body="true"
+                            tooltip-enable="info.canBeDeleted == false"
+                            class="margin-left small red"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty feature -->
+    <div class="feature empty" ng-repeat="i in featuresCtrl.emptySlots track by i">
+        <button class="blue" ng-click="featuresCtrl.view = 'add'" localize="add_feature"></button>
+    </div>
+</div>
+
+<!-- Change View -->
+<div class="feature details" ng-show="featuresCtrl.selectedFeature != null">
+    <div class="headline">
+        <div class="smiley-icon">
+            <i class="smiley small margin-right"
+               tooltip="{{featuresCtrl.selectedFeature.satisfaction}}%"
+               tooltip-append-to-body="true"
+               ng-class="{ moody: featuresCtrl.selectedFeature.satisfaction <= 70 && featuresCtrl.selectedFeature.satisfaction > 50, sad: featuresCtrl.selectedFeature.satisfaction <= 50 }"
+               ng-if="featuresCtrl.selectedFeature.instance.dissatisfaction == null"
+            ></i>
+            <i class="smiley small sad margin-right"
+               tooltip="-{{featuresCtrl.selectedFeature.instance.dissatisfaction}}%"
+               tooltip-append-to-body="true"
+               ng-if="featuresCtrl.selectedFeature.instance.dissatisfaction != null"
+            ></i>
+        </div>
+
+        <h2 localize="{{featuresCtrl.selectedFeature.instance.featureName }}"></h2>
+
+        <div class="labels">
+            <div class="label" ng-if="featuresCtrl.selectedFeature.feature.categoryName == 'Users'" localize="level_amount"
+                  localize-data-level="{{ featuresCtrl.selectedFeature.instance.quality.current }}"></div>
+
+            <div class="label" ng-if="featuresCtrl.selectedFeature.feature.name == 'Subscriptions'" localize="amount_per_month"
+                 localize-data-amount="{{ featuresCtrl.selectedFeature.instance.pricePerMonth }}"
+                 localize-data-amount-format="currency"></div>
+
+            <div class="label" ng-if="featuresCtrl.selectedFeature.feature.categoryName == 'Users'">{{ featuresCtrl.selectedFeature.requiredCu }} CU</div>
+
+            <div class="label" ng-if="!featuresCtrl.selectedFeature.instance.efficiency.current">{{ featuresCtrl.selectedFeature.instance.efficiency }}%</div>
+
+            <div class="label"
+                 localize="support_tickets_avoided_x"
+                 localize-data-amount="{{featuresCtrl.selectedFeature.instance.ticketsAvoided | number: 0 }}"
+                 ng-if="featuresCtrl.selectedFeature.instance.ticketsAvoided >= 0"></div>
+        </div>
+
+        <button class="red small" localize="delete" id="delete-feature-button"
+                ng-click="featuresCtrl.selectedFeature.canBeDeleted && featuresCtrl.deleteFeature(featuresCtrl.selectedFeature)"
+                ng-class="{disabled: featuresCtrl.selectedFeature.canBeDeleted == false}"
+                tooltip="{{ featuresCtrl.cannotDeleteFeatureString }}"
+                tooltip-append-to-body="true"
+                tooltip-enable="featuresCtrl.selectedFeature.canBeDeleted == false"></button>
+    </div>
+
+    <div class="content feature-content">
+        <product-features-subscription
+                ng-if="featuresCtrl.selectedFeature.feature.name == 'Subscriptions'"></product-features-subscription>
+
+        <product-features-upgrade class="flex-row"
+                                  ng-if="featuresCtrl.selectedFeature.feature.categoryName == 'Users' || featuresCtrl.selectedFeature.feature.name == 'HelpSystem'"></product-features-upgrade>
+
+        <product-features-ads
+                ng-if="featuresCtrl.selectedFeature.feature.categoryName == 'Revenue' && featuresCtrl.selectedFeature.feature.name != 'Subscriptions'"
+                class="timeslots"></product-features-ads>
+
+        <product-features-obfuscator
+                ng-if="featuresCtrl.selectedFeature.feature.name == 'AdBlockObfuscator'"></product-features-obfuscator>
+
+        <product-features-ddos-protection
+                ng-if="featuresCtrl.selectedFeature.feature.name == 'DdosProtection'"></product-features-ddos-protection>
+    </div>
+
+    <div class="cancel-bar">
+        <button class="red" ng-click="featuresCtrl.selectedFeature = null; featuresCtrl.view = null"
+                localize="back"></button>
+    </div>
+</div>
+
+<!-- Add Feature -->
+<product-features-add ng-if="featuresCtrl.view == 'add'" class="flex-row margin-top add-new-feature"
+                      style="height: 100%"></product-features-add>

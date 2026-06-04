@@ -1,0 +1,25 @@
+<h1>
+    <i class="fa fa fa-question-circle-o"></i>
+    <span localize="help"></span>
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<div class="flex-row" style="height: 100%">
+    <div class="flex2">
+        <ul class="left-tabs">
+            <li ng-repeat="topic in ctrl.topics track by topic.name"
+                ng-click="ctrl.changeTopic(topic.name)"
+                ng-class="{ active: topic.name == ctrl.selectedTopic }">
+                <span>
+                    <i class="fa {{ topic.faIcon }}"></i>
+                    {{ topic.localized }}
+                </span>
+                <div class="badge" ng-if="!topic.seen">!</div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="flex4" style="height: 100%; overflow: auto" id="help-topic">
+        <ng-include src="ctrl.selectedTopicSrc"></ng-include>
+    </div>
+</div>

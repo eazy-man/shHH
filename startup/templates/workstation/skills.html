@@ -1,0 +1,27 @@
+<p class="padding text-center">Employees gain skill points by leveling up.</p>
+
+<div class="padding flex-row flex-row-center">
+    <table class="big" style="width: 340px;">
+        <tbody>
+        <tr>
+            <td>Free Skill Points:</td>
+            <td class="text-bold" style="width: 50px;">
+                <input type="text" value="{{ selectedWorkstation.employee.skillPoints }}" class="box" style="width: 50px; text-align: center; padding: 3px;"
+                       readonly="readonly">
+            </td>
+            <td></td>
+        </tr>
+        <tr ng-repeat="area in ctrl.areas">
+            <td class="{{area}} capitalize">{{ area }}:</td>
+            <td class="text-bold" style="width: 50px;">
+                <input type="text" value="{{ selectedWorkstation.employee.skills[area]}}" class="box" style="width: 50px; text-align: center; padding: 3px;"
+                       readonly="readonly">
+            </td>
+            <td>
+                <button type="button" class="small square" ng-disabled="selectedWorkstation.employee.skillPoints == 0" ng-click="ctrl.addSkillPoint(selectedWorkstation.employee, area, 1)">+1</button>
+                <button type="button" class="small square" ng-if="selectedWorkstation.employee.skillPoints > 1" ng-disabled="selectedWorkstation.employee.skillPoints == 0" ng-click="ctrl.addSkillPoint(selectedWorkstation.employee, area, selectedWorkstation.employee.skillPoints)">+{{ selectedWorkstation.employee.skillPoints }}</button>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,60 @@
+<div class="padding">
+    <h2 class="text-center dimmed" localize="sell_website"></h2>
+    <table class="big width33 margin-auto shadow-box">
+        <tr>
+            <td class="dimmed" localize="valuation"></td>
+            <td class="monospaced text-bold text-right">{{ sellCtrl.valuation | currency:'$':0 }}</td>
+        </tr>
+        <tr ng-if="sellCtrl.product.sellingRound != null">
+            <td class="dimmed" localize="time_left"></td>
+            <td class="text-bold text-right" localize="x_days" localize-data-days="{{sellCtrl.product.sellingRound.daysLeft}}"></td>
+        </tr>
+    </table>
+
+    <div class="text-center margin-top" ng-show="sellCtrl.product.sellingRound == null">
+        <button ng-click="sellCtrl.start()" localize="sell_website_start_round"></button>
+    </div>
+
+    <hr class="big">
+
+    <div ng-show="sellCtrl.product.sellingRound.offers.length == 0" class="alert alert-info text-center text-bold" localize="outsourcing_no_offers"></div>
+
+    <div class="item-list" ng-show="sellCtrl.product.sellingRound != null && sellCtrl.selectedOffer == null">
+        <div class="item offer" ng-repeat="offer in sellCtrl.product.sellingRound.offers track by offer.id">
+            <h2 localize="sell_website_offer_from" localize-data-amount="{{ offer.price | currency:'$':0 }}" localize-data-investor="{{ offer.investor }}"></h2>
+            <button ng-click="sellCtrl.selectedOffer = offer" localize="select"></button>
+        </div>
+    </div>
+
+    <div class="item-list width50 margin-auto" ng-show="sellCtrl.selectedOffer != null">
+        <div class="item">
+            <div class="content">
+                <table class="big">
+                    <tr>
+                        <td localize="offer"></td>
+                        <td class="monospaced text-right">{{ sellCtrl.selectedOffer.price | currency:'$':0 }}</td>
+                    </tr>
+                    <tr>
+                        <td localize="trading_fee" localize-data-percentage="5"></td>
+                        <td class="monospaced text-right">{{ sellCtrl.selectedOffer.tradingFee | currency:'$':0 }}</td>
+                    </tr>
+                    <tr>
+                        <td localize="taxes_x" localize-data-percentage="25"></td>
+                        <td class="monospaced text-right">{{ sellCtrl.selectedOffer.taxes | currency:'$':0 }}</td>
+                    </tr>
+                    <tr>
+                        <td localize="total"></td>
+                        <td class="monospaced text-right">{{ sellCtrl.selectedOffer.total | currency:'$':0 }}</td>
+                    </tr>
+                </table>
+                <hr class="secondary">
+                <div class="text-center">
+                    <button class="big cancel" ng-click="sellCtrl.selectedOffer = null" ng-show="!sellCtrl.sold" localize="cancel"></button>
+                    <button class="big" ng-click="sellCtrl.acceptOffer()" ng-show="!sellCtrl.sold" localize="accept_offer"></button>
+                    <h3 ng-show="sellCtrl.sold" class="color-red text-bold" localize="sell_website_sold"></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,24 @@
+<div class="top-part">
+    <i class="fa fa-chevron-circle-left"></i>
+    <i class="fa fa-chevron-circle-right"></i>
+    <form ng-submit="ctrl.changeAddress()">
+        <input type="text" ng-model="ctrl.address" class="address-line" readonly>
+    </form>
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</div>
+<div class="content-part flex1">
+    <webview ng-show="ctrl.useExternalBrowser" id="externalBrowser" src="" nodeintegration style="width: 100%; height: 100%; visibility: visible"></webview>
+    <div ng-show="!ctrl.useExternalBrowser">
+        <div class="alert alert-warning text-center text-bold margin" localize="jitter_unavailable" ng-if="ctrl.jeets.length == 0"></div>
+        <div class="jeet animated fadeIn" ng-repeat="jeet in ctrl.jeets track by jeet.id">
+            <img ng-src="{{jeet.avatar}}">
+            <div class="content">
+                <div>
+                    <b>{{ jeet.name }}</b><span class="dimmed"> {{ jeet.handle }} - <span localize="topbar_day" localize-data-day="{{ jeet.day }}"></span></span>
+                </div>
+
+                <p ng-bind-html="jeet.text"></p>
+            </div>
+        </div>
+    </div>
+</div>

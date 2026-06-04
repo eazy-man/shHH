@@ -1,0 +1,52 @@
+<!-- Create Product: Info -->
+<div style="height: 100%;" class="padding" ng-if="createCtrl.view == null">
+    <div class="flex-column item-list" style="height: 100%">
+        <div class="flex3" style="overflow: auto;">
+            <div class="item-list horizontal dragscroll">
+                <div class="item"
+                     ng-repeat="info in createCtrl.productTypes track by info.productType.name"
+                     ng-class="{ active: (ctrl.product.productTypeName == info.productType.name || createCtrl.product.productTypeName == info.productType.name) }"
+                     ng-click="createCtrl.selectProductType(info.productType)">
+                    <h3>
+                        <i class="fa {{ info.productType.faIcon }}"></i>
+                        <span localize="{{ info.productType.name }}"></span>
+                    </h3>
+
+                    <div class="content text-center flex-content">
+                        <h4 localize="competitors"></h4>
+
+                        <div style="display: inline-block; text-align: center;">
+                            <div class="large flex-super-center" style="float: left; clear: both; padding: 3px 0;"
+                                 ng-repeat="competitor in info.competitors track by competitor.id">
+                                <img ng-src="{{competitor.logoPath}}" class="companyLogo small">
+                                {{ competitor.name }}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button class="blue large margin-top" localize="select"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex1 item" style="margin: 0;">
+            <div class="content">
+                <div class="flex-super-center">
+                    <input class="text-center" type="text"
+                           ng-model="createCtrl.product.name"
+                           ng-class="{ invalid: !createCtrl.valid }"
+                           placeholder="{{ GetLocalized('enter_product_name') }}"
+                           restrict-to="[a-zA-Z0-9/\s]+"
+                           maxlength="20">
+                </div>
+
+                <div class="text-center margin-top">
+                    <button class="cancel margin-top" ng-if="ctrl.product != null" ng-click="createCtrl.cancelCreate()"
+                            localize="cancel"></button>
+                    <button ng-click="createCtrl.createProduct()" ng-disabled="!createCtrl.valid"
+                            localize="create_product" class="margin-top"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,36 @@
+<!-- Headhunted / Hired -->
+<h3 style="margin: 0 0 20px 0;">
+    {{ ::employee.name }}
+</h3>
+<div class="content">
+    <div class="avatar-image" style="background-image: url('assets/people/{{ ::employee.avatar }}.png')"></div>
+
+    <table style="margin-top: 10px;">
+        <tr>
+            <td class="text-bold">
+                <icon class="icon {{ ::employee.employeeTypeName }}"
+                      uib-tooltip="{{ ::employee.employeeTypeName }}"></icon>
+                <i class="fa" ng-class="{
+                        'fa-star-o': employee.level == Enums.EmployeeLevels.Beginner,
+                        'fa-star-half-o': employee.level == Enums.EmployeeLevels.Intermediate,
+                        'fa-star': employee.level == Enums.EmployeeLevels.Expert }"></i>
+                <span tooltip-append-to-body="true"
+                      uib-tooltip="{{ GetLocalized('tip_speed')}}">{{ employee.speed | number: 0 }}%</span>
+            </td>
+        </tr>
+        <tr>
+            <td class="padding-top" localize="amount_per_month" localize-data-amount="{{::employee.salary}}"
+                localize-data-amount-format="currency"></td>
+        </tr>
+    </table>
+    <div style="margin-top: 5px;">
+        <div>
+            <button type="button" class="hire margin-bottom"
+                    style="margin-top: 3px;"
+                    ng-click="ctrl.placeEmployee(employee)"
+                    ng-class="{ cancel: wer.total < employee.requiredWer }">
+                {{ GetLocalized('select') }}
+            </button>
+        </div>
+    </div>
+</div>

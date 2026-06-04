@@ -1,0 +1,11 @@
+<div class="dialog text-center" style="width: 520px">
+    <h1 class="color-red" localize="bankruptcy"></h1>
+    <div class="padding">
+        <div localize="bankruptcy_description"></div>
+        <div class="padding margin-top">
+            <button ng-click="ctrl.loadLastSaveGame()" ng-if="ctrl.lastAutoSave" localize="load_last_auto_save" class="margin-bottom"></button>
+            <br>
+            <button class="cancel" ng-click="setActiveView('menu')" localize="return_to_main_menu"></button><br>
+        </div>
+    </div>
+</div>

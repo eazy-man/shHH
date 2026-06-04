@@ -1,0 +1,337 @@
+<div id="uiscaling" dropdown-select="ctrl.uiScales" dropdown-model="ctrl.scale"
+     dropdown-onchange="ctrl.uiScaleChanged(selected)" dropdown-item-label="name" style="z-index: 999"></div>
+
+<div class="alert alert-danger animated flash" ng-if="ctrl.requiresRestart">
+    <span localize="restart_to_take_effect"></span>
+    <button class="red small" ng-click="ctrl.restart()" localize="restart"></button>
+</div>
+
+<div class="alert alert-success text-bold animated bounceIn" ng-if="ctrl.showSaveConfirm">
+    <span localize="save_success"></span>
+</div>
+
+
+<!-- Welcome -->
+<div class="dialog text-center" ng-if="ctrl.view == 'welcome'" id="welcome">
+    <div class="padding">
+        <h1 localize="welcome"></h1>
+        <p localize="welcome_description"></p>
+
+        <div class="text-center" style="margin-top: 20px;">
+            <div style="width: 100%;" dropdown-select="ctrl.languages" dropdown-model="ctrl.language"
+                 dropdown-onchange="ctrl.languageChanged(selected)" dropdown-item-label="name"></div>
+        </div>
+
+        <div style="margin-top: 30px;">
+            <p localize="gettingstarted_enter_email"></p>
+            <input class="form-control margin-top" id="email" name="email" placeholder="mail@example.org"
+                   ng-model="options.email" type="email" required>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <button class="big" ng-click="ctrl.confirmWelcome()" localize="confirm"></button>
+    </div>
+</div>
+
+<div style="position: absolute; top: 10px; right: 10px;" ng-if="ctrl.developerMode">
+    <table class="color-darkblack" style="width: 8vw;">
+        <tr>
+            <td>steamCloudEnabled:</td>
+            <td>{{ ctrl.debug.steamCloudEnabled }}</td>
+        </tr>
+        <tr>
+            <td>steamSubscribed:</td>
+            <td>{{ ctrl.debug.steamSubscribed }}</td>
+        </tr>
+        <tr>
+            <td>steamId:</td>
+            <td>{{ ctrl.debug.steamId }}</td>
+        </tr>
+        <tr>
+            <td>WebGL:</td>
+            <td>{{ ctrl.webGlEnabled }}</td>
+        </tr>
+    </table>
+</div>
+
+<div class="buttons" ng-if="ctrl.view == null">
+    <div ng-if="settings != null">
+        <button class="blue" ng-click="ctrl.continueGame()">
+            <i class="fa fa-play"></i> <span localize="continue"></span>
+        </button>
+        <button class="blue" ng-click="ctrl.view = 'saveGame'">
+            <i class="fa fa-save"></i> <span localize="save_game"></span>
+        </button>
+        <hr>
+    </div>
+    <button class="cancel" ng-click="ctrl.view = 'newGame'">
+        <i class="fa fa-plus"></i> <span localize="new_game"></span>
+    </button>
+    <button class="cancel" ng-click="ctrl.view = 'loadGame'" ng-disabled="ctrl.saveGames.length == 0">
+        <i class="fa fa-upload"></i> <span localize="load_game"></span>
+    </button>
+    <button class="cancel" ng-click="ctrl.view = 'options'">
+        <i class="fa fa-cogs"></i> <span localize="options"></span>
+    </button>
+    <button class="cancel" ng-click="ctrl.view = 'achievements'">
+        <i class="fa fa-trophy"></i> <span localize="achievements"></span>
+    </button>
+    <button class="cancel" ng-click="ctrl.view = 'mods'">
+        <i class="fa fa-wrench"></i> <span localize="mods"></span>
+    </button>
+    <button class="red" ng-click="ctrl.exitGame()">
+        <i class="fa fa-sign-out"></i> <span localize="exit"></span>
+    </button>
+</div>
+
+<div class="dialog" ng-if="ctrl.view == 'loadGame' || ctrl.view == 'saveGame'">
+    <h1>
+        <span localize="{{ ctrl.view == 'loadGame' ? 'load_game' : 'save_game' }}"></span>
+        <i class="fa fa-times pull-right close-button" ng-click="ctrl.view = null"></i>
+    </h1>
+
+    <div class="tab-content">
+        <div>
+            <div class="flex-super-center">
+                <div class="toggle-switch margin-right"
+                     ng-click="ctrl.showAutoSaves = !ctrl.showAutoSaves"
+                     ng-class="{active: ctrl.showAutoSaves }">
+                    <span></span>
+                </div>
+                <span localize="show_auto_saves"></span>
+            </div>
+        </div>
+
+        <div class="item-list savegames hover">
+            <div class="item no-hover" ng-if="ctrl.view == 'saveGame'">
+                <div class="flex3">
+                    <div>
+                        <input type="text" ng-model="ctrl.newSaveGameName">
+                    </div>
+                </div>
+                <div class="flex1 text-right">
+                    <button class="big" localize="save" ng-click="ctrl.saveGame()"></button>
+                </div>
+            </div>
+            <div class="item"
+                 ng-repeat="saveGame in ctrl.saveGames track by saveGame.fileName"
+                 uib-tooltip="{{ GetLocalized('tooltip_game_over') }}"
+                 ng-click="!saveGame.corrupt && (ctrl.view == 'saveGame' ? ctrl.saveGame(saveGame) : ctrl.loadSaveGame(saveGame))"
+                 ng-class="{ disabled: saveGame.isAutosave, 'no-hover disabled': saveGame.corrupt }"
+                 tooltip-enable="saveGame.gameover">
+                <div class="flex3">
+                    <div class="margin-bottom text-bold large">{{ saveGame.saveGameName }}
+                        <span ng-if="saveGame.corrupt" localize="savegame_corrupt" class="color-red"></span>
+                        <span class="small dimmed" ng-if="saveGame.day">
+                                (<span localize="topbar_day" localize-data-day="{{ saveGame.day }}"></span>)
+                            </span>
+                    </div>
+                    <span class="dimmed">
+                        {{ saveGame.fileName }}
+                        <span ng-if="saveGame.lastSaved"><br>{{ saveGame.lastSaved | date:'short' }}</span>
+                    </span>
+                </div>
+                <div class="flex1 text-right">
+                    <button class="red small" ng-click="ctrl.deleteSaveGame(saveGame);$event.stopPropagation()"><i
+                            class="fa fa-times"></i></button>
+                </div>
+            </div>
+        </div>
+        <div class="text-center margin-bottom margin-top">
+            <button localize="open_sg_folder" class="tiny cancel" ng-click="ctrl.openSaveGamesFolder()"></button>
+        </div>
+    </div>
+</div>
+
+<div class="dialog" ng-if="ctrl.view == 'options'">
+    <h1>
+        <i class="fa fa-cogs"></i>
+        <span localize="options"></span>
+        <i class="fa fa-times pull-right close-button" ng-click="ctrl.view = null"></i>
+    </h1>
+
+    <div class="tab-content">
+        <p class="text-center dimmed padding" localize="changes_saved_instant"></p>
+
+        <div class="padding">
+            <div class="flex-row">
+                <div class="flex1 text-bold column-center padding" localize="fullscreen">
+                </div>
+                <div class="flex1 text-right column-center padding">
+                    <div ng-click="ctrl.toggleFullscreen()" ng-class="{'active': options.fullScreen }"
+                         class="toggle-switch pull-right"><span></span></div>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div class="flex1 text-bold column-center padding" localize="language"></div>
+                <div class="flex1 text-right column-center padding">
+                    <div dropdown-select="ctrl.languages" dropdown-model="ctrl.language"
+                         dropdown-onchange="ctrl.languageChanged(selected)" dropdown-item-label="name"></div>
+                </div>
+            </div>
+
+            <div class="flex-row" ng-if="ctrl.showUiScaling">
+                <div class="flex1 text-bold column-center padding" localize="ui_scaling"></div>
+                <div class="flex1 text-right column-center padding">
+                    <div dropdown-select="ctrl.uiScales" dropdown-model="ctrl.scale"
+                         dropdown-onchange="ctrl.uiScaleChanged(selected)" dropdown-item-label="name"></div>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div class="flex1 text-bold column-center padding" localize="master_volume"></div>
+                <div class="flex1 text-right column-center padding">
+                    <input type="range" min="0" max="100" ng-model="options.masterVolume"/>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div class="flex1 text-bold column-center padding" localize="music_volume"></div>
+                <div class="flex1 text-right column-center padding">
+                    <input type="range" min="0" max="100" ng-model="options.musicVolume"/>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div class="flex1 text-bold column-center padding" localize="sfx_volume"></div>
+                <div class="flex1 text-right column-center padding">
+                    <input type="range" min="0" max="100" ng-model="options.sfxVolume"/>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div class="flex1 text-bold column-center padding" localize="allow_run_background"></div>
+                <div class="flex1 text-right column-center padding">
+                    <div ng-click="ctrl.toggleAllowRunInBackground()"
+                         ng-class="{'active': options.allowRunInBackground }"
+                         class="toggle-switch pull-right"><span></span></div>
+                </div>
+            </div>
+
+            <div class="flex-row">
+                <div class="flex1 text-bold column-center padding" localize="timeformat"></div>
+                <div class="flex1 text-right column-center padding">
+                    <div dropdown-select="ctrl.timeFormats" dropdown-model="ctrl.timeFormat"
+                         dropdown-item-label="name" dropdown-onchange="ctrl.timeFormatChanged(selected)"></div>
+                </div>
+            </div>
+            <div class="flex-row">
+                <div class="flex1 text-bold column-center padding" localize="temperature"></div>
+                <div class="flex1 text-right column-center padding">
+                    <div dropdown-select="ctrl.temperatureFormats" dropdown-model="ctrl.temperatureFormat"
+                         dropdown-item-label="name" dropdown-onchange="ctrl.temperatureFormatChanged(selected)"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="dialog" ng-if="ctrl.view == 'achievements'">
+    <h1>
+        <i class="fa fa-trophy"></i>
+        <span localize="achievements"></span>
+        <i class="fa fa-times pull-right close-button" ng-click="ctrl.view = null"></i>
+    </h1>
+
+    <div class="tab-content">
+        <div class="padding">
+            <h3 style="text-transform: uppercase; text-align: center" localize="achievement_progress" localize-data-completed="{{ctrl.completedAchievements}}" localize-data-total="{{ ctrl.achievements.length }}"></h3>
+
+            <div class="item-list">
+                <div class="item achievement" ng-class="{active: achievement.unlocked }" ng-repeat="achievement in ctrl.achievements track by achievement.name">
+                    <h3 localize="{{ achievement.name }}"></h3>
+                    <div class="content">
+                        <img ng-src="images/achievements/{{ achievement.name | lowercase }}.jpg" alt="">
+                        <p class="flex5" localize="{{achievement.name}}_description"></p>
+                        <div class="flex1">
+                            <i class="fa fa-check-circle" ng-show="achievement.unlocked"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<mods class="dialog" ng-if="ctrl.view == 'mods'" style="width: 650px;"></mods>
+
+<div class="dialog" ng-if="ctrl.view == 'eula'">
+    <h1>
+        End-user License Agreement
+        <i class="fa fa-times pull-right close-button" ng-click="ctrl.view = null"></i>
+    </h1>
+    <iframe src="tos.txt" frameborder="0"
+            style="width: 100%;height: 100%;border: 1px solid #c6c8c9;overflow: auto;"></iframe>
+</div>
+
+<div class="dialog" ng-if="ctrl.view == 'licenses'">
+    <h1>
+        Licenses
+        <i class="fa fa-times pull-right close-button" ng-click="ctrl.view = null"></i>
+    </h1>
+    <iframe src="licenses.txt" frameborder="0"
+            style="width: 100%;height: 100%;border: 1px solid #c6c8c9;overflow: auto;"></iframe>
+</div>
+
+<div class="dialog" ng-if="ctrl.view == 'credits'">
+    <h1>
+        Credits
+        <i class="fa fa-times pull-right close-button" ng-click="ctrl.view = null"></i>
+    </h1>
+    <div class="padding text-center" style="padding: 20px 60px; overflow: auto;">
+        <div style="margin-bottom: 35px;">
+            <div class="dimmed">Development, Design & UI</div>
+            Jonas Hovgaard
+        </div>
+        <div style="margin-bottom: 35px;">
+            <div class="dimmed">3D Assets</div>
+            Bruno Kenzo
+        </div>
+        <div style="margin-bottom: 35px;">
+            <div class="dimmed">Music</div>
+            Mike Bridge
+        </div>
+        <div style="margin-bottom: 35px;">
+            <div class="dimmed">Video Producer</div>
+            Alexander Bock
+        </div>
+        <div style="margin-bottom: 35px;">
+            <div class="dimmed">A special thanks</div>
+            My girlfriend for constantly believing in the project<br><br>
+            The community on Twitch and Discord for always keeping me motivated
+        </div>
+    </div>
+</div>
+
+<new-game class="dialog" ng-if="ctrl.view == 'newGame'"></new-game>
+
+
+<div id="footer">
+    <div class="link-container">
+        <div>
+        <a ng-click="ctrl.openGithub()" ng-if="ctrl.debug.steamSubscribed">Bug Reporting</a><br>
+        <a ng-click="ctrl.view = 'licenses'">Licenses</a><br>
+        <a ng-click="ctrl.view = 'eula'" ng-right-clicK="ctrl.openDevTools()">EULA</a><br>
+        <a ng-click="ctrl.view = 'credits'">Credits</a><br>
+        <a><img ng-click="ctrl.openDiscord()" src="images/discord.png" class="discord-logo"/></a>
+        </div>
+    </div>
+
+
+
+    <div class="text-center" style="display: flex; align-items: flex-end; justify-content: center;">
+        Startup Company {{ Version }}<br>© Copyright {{ year }} - Hovgaard Games
+    </div>
+
+    <div class="menu-footer-right">
+        <div class="ba-presentation" onclick="Remote.app.openLink('https://store.steampowered.com/app/1331550/Big_Ambitions/')">Did you complete Startup Company already?<br>
+<br>
+            We’re now working on our next game:<br>
+            <b>Big Ambitions</b> - a revolutionary business sim game.<br>
+<br>
+            <b>Wishlist and follow on Steam</b></div>
+        <img onclick="Remote.app.openLink('https://store.steampowered.com/app/1331550/Big_Ambitions/')" src="images/ba-logo-square.png" class="ba-widget">
+    </div>
+</div>

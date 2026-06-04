@@ -1,0 +1,56 @@
+<h1>
+    <i class="fa fa-wrench"></i>
+    <span localize="mods"></span>
+    <i class="fa fa-times pull-right close-button" ng-click="$parent.ctrl.view = null"></i>
+</h1>
+<div class="tab-content">
+    <div class="text-center padding">
+        <button class="blue" ng-if="ctrl.debug.steamEnabled" ng-click="modsCtrl.openWorkshop()" localize="browse_workshop" ng-if="ctrl.debug.steamEnabled"></button>
+        <button class="small cancel" ng-click="modsCtrl.browseFiles()" localize="browse_files"></button>
+        <p class="margin-top dimmed" localize="mods_tip_restart"></p>
+    </div>
+
+    <div class="padding color-red text-center" ng-if="modsCtrl.failedMods.length > 0">
+        <span ng-repeat="modName in modsCtrl.failedMods" localize="mod_failed" localize-data-name="{{modName}}"></span>
+
+    </div>
+
+    <div class="animated fadeIn">
+        <div class="item-list mods">
+            <div class="color-red padding text-center" ng-if="modsCtrl.mods == null">Loading...</div>
+            <p class="color-red padding text-center" ng-if="modsCtrl.mods.length == 0"
+               localize="no_mods"></p>
+            <div class="item" ng-repeat="modInfo in modsCtrl.mods track by modInfo.mod.id">
+                <h3>
+                    <div>
+                        {{ modInfo.mod.name }} <span class="small dimmed" ng-if="modInfo.mod.author != null">(By {{ modInfo.mod.author }})</span>
+                    </div>
+
+                    <div ng-click="modsCtrl.toggleMod(modInfo)" ng-class="{'active': modInfo.enabled }"
+                         class="toggle-switch" style="margin: 2px;">
+                        <span></span>
+                    </div>
+                </h3>
+                <div class="flex-row content">
+                    <div class="flex3">
+                        <p>{{ modInfo.mod.description }}</p>
+                        <div>
+                            <button class="red small" ng-click="modsCtrl.unsubscribe(modInfo)" localize="unsubscribe"></button>
+                            <button class="small" ng-if="ctrl.debug.steamEnabled && modInfo.owned" ng-click="modsCtrl.uploadToSteam(modInfo)" ng-disabled="modInfo.isUploading">
+                            <span ng-if="!modInfo.isUploading">
+                                <span ng-if="!modInfo.workshopItem" localize="publish_to_steam"></span>
+                                <span ng-if="modInfo.workshopItem" localize="update_on_steam"></span>
+                            </span>
+                                <span ng-if="modInfo.isUploading" localize="uploading"></span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex1 text-right">
+                        <img ng-src="{{ modInfo.mod.thumbnailPath }}" style="max-width: 90px; max-height: 90px; margin-bottom: 5px; border-radius: 5px;">
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

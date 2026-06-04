@@ -1,0 +1,126 @@
+<div class="item-list flex-row">
+    <!-- Configure -->
+    <div class="item flex1" style="margin-right: 0; margin-bottom: 0;">
+        <h3 localize="targeting"></h3>
+
+        <div class="content">
+            <div class="scrollbox">
+                <table class="medium">
+                    <tr>
+                        <td localize="{{detailsCtrl.campaign.type }}" style="width: 80%"></td>
+                        <td class="text-right">{{ detailsCtrl.marketingPackage.conversionRate }}%</td>
+                    </tr>
+                    <tr ng-repeat="target in detailsCtrl.campaign.targets track by target.name">
+                        <td>
+                            <span localize="{{ target.name }}"></span>
+                        </td>
+                        <td class="text-right">
+                        <span ng-if="detailsCtrl.campaign.reportCreated">
+                            <span class="color-green" ng-if="target.isMatch">10%</span>
+                            <span class="color-red" ng-if="!target.isMatch">-10%</span>
+                        </span>
+
+                            <span class="color-yellow text-bold" ng-if="!detailsCtrl.campaign.reportCreated">
+                            ? <tooltip key="missing_report_info"></tooltip>
+                        </span>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <table class="medium">
+                <tr class="text-bold">
+                    <td localize="conversion_rate"></td>
+                    <td class="text-right">{{ detailsCtrl.campaign.conversionRate }}%</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <hr class="big dark">
+                    </td>
+                </tr>
+            </table>
+            <table class="medium">
+                <tr>
+                    <td class="dimmed" localize="feature_to_promote"></td>
+                    <td localize="{{detailsCtrl.campaign.featureName }}"></td>
+                </tr>
+                <tr>
+                    <td class="dimmed" localize="reach"></td>
+                    <td>{{detailsCtrl.campaign.reach | number }}</td>
+                </tr>
+                <tr>
+                    <td class="dimmed" localize="cost_per_thousand"></td>
+                    <td>{{detailsCtrl.campaign.cpm | currency }}</td>
+                </tr>
+                <tr>
+                    <td class="dimmed" localize="impressions"></td>
+                    <td>{{ (detailsCtrl.campaignProgress.impressions || 0) | number: 0}}</td>
+                </tr>
+                <tr class="text-bold">
+                    <td class="dimmed" localize="audience_reached"></td>
+                    <td>{{detailsCtrl.campaignProgress.audienceReached || 0 }}%</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <div class="flex-column flex1">
+        <div class="item" style="margin-bottom: 0;">
+            <h3>
+                <i class="fa fa-eye"></i> <span localize="insight"></span>
+            </h3>
+            <div class="content">
+                <div ng-if="detailsCtrl.campaign.reportCreated">
+                    <div class="alert alert-info text-center" localize="no_further_data_available"></div>
+                </div>
+
+                <div class="flex-super-center flex-column" ng-if="!detailsCtrl.campaign.reportCreated">
+                    <div class="padding">
+                        <component component="::stack.component"
+                                   ng-disabled="!stack.isAvailableInInventory"
+                                   stack-amount="stack.amount"
+                                   class="small"
+                                   ng-repeat="stack in detailsCtrl.reportStacks track by stack.component.name"
+                                   show-inventory-amount="true">
+                        </component>
+                    </div>
+
+                    <button localize="create_report"
+                            class="margin-bottom"
+                            ng-click="detailsCtrl.canCreateReport && detailsCtrl.createReport()"
+                            ng-class="{ 'disabled': !detailsCtrl.canCreateReport }"
+                            tooltip="{{detailsCtrl.marketingDenyString}}"
+                            tooltip-enable="(detailsCtrl.campaignProgress.audienceReached || 0) < 10"></button>
+                </div>
+            </div>
+        </div>
+        <div class="item flex1" style="margin-bottom: 0">
+            <h3>
+                <i class="fa fa-money"></i> <span localize="budget"></span>
+            </h3>
+            <div class="content flex-super-center flex-column">
+                <h4 localize="total_spent" class="dimmed" style="margin-bottom: 0;"></h4>
+                <h4 class="monospaced">{{ (detailsCtrl.campaignProgress.totalSpent || 0) | currency:'$':0 }}</h4>
+
+                <table class="text-center">
+                    <tr>
+                        <td localize="daily_budget" localize-data-max="{{detailsCtrl.campaign.maxDailyBudget}}"
+                            localize-data-max-format="currency">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="flex-super-center">
+                            <div class="currency width50">
+                                <input type="number" ng-model="detailsCtrl.campaign.dailyBudget" min="0"
+                                       class="text-center">
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="cancel-bar">
+    <button class="red" ng-click="$parent.listCtrl.view = null" localize="back"></button>
+</div>

@@ -1,0 +1,133 @@
+<div class="item-list optimize-scroll">
+    <div class="padding flex-row">
+        <div class="flex1 flex-super-center">
+            <table class="medium">
+                <tr>
+                    <td localize="total_cu" class="width50"></td>
+                    <td class="text-bold monospaced width50">{{$parent.ctrl.stats.performance.availableCu | number }}</td>
+                </tr>
+                <tr>
+                    <td localize="used_cu"></td>
+                    <td class="text-bold monospaced">{{$parent.ctrl.stats.performance.requiredCu | number}}</td>
+                </tr>
+                <tr>
+                    <td localize="free_cu"></td>
+                    <td class="text-bold monospaced">{{$parent.ctrl.stats.performance.availableCu -
+                        $parent.ctrl.stats.performance.requiredCu | number }}
+                    </td>
+                </tr>
+                <tr>
+                    <td localize="peak_cu"></td>
+                    <td class="text-bold monospaced">{{$parent.ctrl.stats.performance.peakCu | number }}
+                        <button class="tiny cancel" localize="reset" ng-click="hostingCtrl.resetPeakCu()"></button>
+                    </td>
+                </tr>
+            </table>
+        </div>
+        <div class="server-gauge">
+            <canvas id="server-gauge" style="height: 150px;"></canvas>
+            <div class="indicator"></div>
+        </div>
+        <div class="flex1 flex-super-center flex-column">
+            <div id="responsetime-graph">
+                <div class="labels">
+                    <div localize="critical" class="critical"></div>
+                    <div localize="unstable" class="unstable"></div>
+                    <div localize="stable" class="stable"></div>
+                </div>
+                <div class="pipe">
+                    <div class="critical"></div>
+                    <div class="unstable"></div>
+                    <div class="stable"></div>
+                </div>
+                <div class="indicator {{ $parent.ctrl.productProgress.stats.performance.state | lowercase }}">
+                    <i class="fa fa-arrow-left"></i>
+                </div>
+            </div>
+            <div class="text-center dimmed margin-top">
+                <span localize="response_time"></span>:
+                <span class="monospaced text-bold" ng-class="{
+                'color-red': $parent.ctrl.productProgress.stats.performance.state == 'Critical',
+                'color-yellow': $parent.ctrl.productProgress.stats.performance.state == 'Unstable',
+                'color-green': $parent.ctrl.productProgress.stats.performance.state == 'Stable'
+             }">
+                <span>{{$parent.ctrl.productProgress.stats.performance.responseTime > 9999 ? '>9999' : $parent.ctrl.productProgress.stats.performance.responseTime}}ms</span>
+                </span>
+            </div>
+        </div>
+    </div>
+    <div class="padding" ng-if="$parent.ctrl.todaysRevenue < hostingCtrl.hostingExpenses">
+        <div class="alert alert-danger text-center" localize="hosting_revenue_warning">
+        </div>
+    </div>
+
+    <div class="item" ng-if="$root.settings.hosting != null">
+        <h3 class="text-left">
+            <span localize="{{ $root.settings.hosting.buildingName }}"></span>
+            <span class="dimmed">(+{{ hostingCtrl.hosting.performance.producedCu | number }} CU, <span localize="amount_per_day"
+                                                                      localize-data-amount="{{hostingCtrl.hosting.dailyExpenses}}"
+                                                                      localize-data-amount-format="currency"></span>)</span>
+        </h3>
+        <div class="flex-row content">
+            <img ng-src="{{ hostingCtrl.hosting.building.thumbnailPath }}" class="building-thumbnail">
+
+            <div style="flex: 6; padding-left: 15px;" class="flex-row">
+                <div class="flex5">
+                    <table>
+                        <tr>
+                            <td class="dimmed" localize="allocation"></td>
+                            <td class="text-bold">
+                                <input type="range" min="0" max="100" ng-model="$parent.$parent.ctrl.product.hostingAllocation" class="secondary-color" style="width: 70%">
+                                {{$parent.$parent.ctrl.product.hostingAllocation}}%
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed" localize="total_cu"></td>
+                            <td>{{hostingCtrl.hosting.totalCu | number }}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="flex2">
+                    <button ng-click="hostingCtrl.goToBuilding()" ng-disabled="$root.activeBuilding.type == 'Hosting'" style="width: 100%; margin-bottom: 0.5vw;" class="cancel" localize="go_to_building"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info text-center margin text-bold" localize="max_virtual_servers_warning" ng-if="hostingCtrl.maxCuReached"></div>
+
+    <div class="item" ng-repeat="server in hostingCtrl.servers track by server.name">
+        <h3 style="text-align: left;">
+            <span localize="{{server.name}}"></span>
+            <span class="dimmed">(+{{ server.computeUnit }} CU, <span localize="amount_per_day"
+                                                                      localize-data-amount="{{server.pricePerDay}}"
+                                                                      localize-data-amount-format="currency"></span>)</span>
+        </h3>
+        <div class="flex-row content">
+            <!-- Server Count -->
+            <div class="server-count">{{ server.instances }}</div>
+
+            <div style="flex: 6; padding-left: 15px;" class="flex-row">
+                <div class="flex5">
+                    <div>
+                        <component component="::stack.component"
+                                   ng-disabled="!stack.isAvailableInInventory"
+                                   stack-amount="::stack.amount"
+                                   class="small"
+                                   ng-repeat="stack in server.stacks track by stack.component.name"
+                                   show-inventory-amount="true">
+                        </component>
+                    </div>
+                </div>
+                <div class="flex2">
+                    <button ng-click="hostingCtrl.addInstance(server)" style="width: 100%; margin-bottom: 0.5vw;"
+                            ng-disabled="!server.isAvailable || hostingCtrl.maxCuReached" class="small blue" localize="add_instance">
+                    </button>
+                    <button ng-click="hostingCtrl.removeInstance(server)" style="width: 100%;"
+                            ng-disabled="server.instances == 0 || ($root.settings.hosting == null && hostingCtrl.amountOfServers == 1)" class="small red" localize="remove_instance">
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

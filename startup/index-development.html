@@ -1,0 +1,176 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Loading...</title>
+    <meta charset="utf-8"/>
+    <link href="dest/loader.css" rel="stylesheet"/>
+    <link href="dest/libs.css" rel="stylesheet"/>
+    <script src="scripts/libs/bugsnag.min.js"></script>
+</head>
+
+<body ng-app="game"
+      ng-class="::{ developerMode: game.developerMode }"
+      class="{{ activeBuilding.type }} scale{{ $root.options.uiScale}}"
+      ng-controller="GameController as game">
+
+<webview src="diskView-development.html" nodeIntegration="true"></webview>
+
+<div id="loading-screen">
+    <div class="top"></div>
+    <div class="bottom">
+        <div class="spinner">
+            <div class="dot1"></div>
+            <div class="dot2"></div>
+        </div>
+    </div>
+</div>
+
+<ui ng-if="settings.started" class="{{ mode }}"></ui>
+
+<div>
+    <canvas id="grid"></canvas>
+    <canvas id="items"></canvas>
+    <canvas id="overlays"></canvas>
+    <div id="isodom-dimmer"></div>
+</div>
+
+<pause-blur class="animated flash" ng-if="settings.started && settings.paused" disable-animate>
+    <div></div>
+</pause-blur>
+
+<city-map ng-if="mode == 'cityMap'"></city-map>
+
+<office></office>
+
+<menu ng-if="view == 'menu'" class="flex-super-center"></menu>
+<message class="dimmer" ng-if="Message.visible"></message>
+<achievement ng-if="settings != null && options.activeAchievement != null" ng-click="options.activeAchievement = null"></achievement>
+
+<!-- Insert this line above script imports  -->
+<script>if (typeof module === 'object') {
+    window.module = module;
+    module = undefined;
+}</script>
+
+<!--<script src="dest/game.min.js"></script>-->
+<script src="scripts/libs/jquery-1.11.3.js"></script>
+<script src="scripts/libs/lodash.min.js"></script>
+<script src="scripts/libs/moment.min.js"></script>
+<script src="scripts/libs/angular.js"></script>
+<script src="scripts/libs/angular-sanitize.js"></script>
+<script src="scripts/libs/dragscroll.js"></script>
+<script src="scripts/libs/ui-bootstrap-tpls-0.14.3.min.js"></script>
+<script src="scripts/libs/chance.min.js"></script>
+<script src="scripts/libs/angular-dropdowns.min.js"></script>
+<script src="scripts/libs/select.js"></script>
+<script src="scripts/libs/numeral.min.js"></script>
+<script src="scripts/libs/jquery.scrollTo.min.js"></script>
+<script src="scripts/libs/Chart.min.js"></script>
+<script src="scripts/libs/angular-tablesort.js"></script>
+<script src="scripts/libs/countUp.min.js"></script>
+<script src="scripts/libs/angular-countUp.min.js"></script>
+<script src="scripts/libs/rzslider.min.js"></script>
+<script src="scripts/libs/Sortable.min.js"></script>
+<script src="scripts/libs/angular-legacy-sortable.js"></script>
+<script src="scripts/libs/preloadjs-NEXT.min.js"></script>
+<script src="scripts/libs/tweenjs-NEXT.min.js"></script>
+<script src="scripts/libs/ng-table.min.js"></script>
+
+<script src="scripts/libs/countUp.min.js"></script>
+<script src="scripts/libs/typed.min.js"></script>
+
+<script src="isodom/easeljs.mod.js"></script>
+<script src="isodom/IsoDom.js"></script>
+<script src="isodom/Conductor.js" type="application/javascript"></script>
+<script src="isodom/Controls.js" type="application/javascript"></script>
+<script src="isodom/DragAndDrop.js" type="application/javascript"></script>
+
+<script src="scripts/overlayController.js" type="application/javascript"></script>
+
+<script src="scripts/data/enums.js"></script>
+<script src="configuration.js"></script>
+<script src="scripts/globalHelpers.js"></script>
+<script src="scripts/noAnnotation.js"></script>
+<script src="scripts/modding.js"></script>
+<script src="scripts/sounds.js"></script>
+<script src="scripts/data/development/components.js"></script>
+<script src="scripts/data/development/modules.js"></script>
+<script src="scripts/data/development/marketingPackages.js"></script>
+<script src="scripts/data/buildings.js"></script>
+<script src="scripts/data/investmentProjects.js"></script>
+<script src="scripts/data/development/frameworks.js"></script>
+<script src="scripts/data/development/features.js"></script>
+<script src="scripts/data/development/servers.js"></script>
+<script src="scripts/data/emotions.js"></script>
+
+<script src="scripts/data/items.js"></script>
+<script src="scripts/data/benefits.js"></script>
+<script src="scripts/data/rackDevices.js"></script>
+
+<script src="scripts/data/researchItems.js"></script>
+<script src="scripts/data/helpTopics.js"></script>
+
+<script src="scripts/data/database.js"></script>
+<script src="scripts/data/achievements.js"></script>
+<script src="scripts/data/generators.js"></script>
+<script src="scripts/data/events.js"></script>
+<script src="scripts/data/productTypes.js"></script>
+<script src="scripts/data/competitorProducts.js"></script>
+<script src="scripts/data/development/featureBonuses.js"></script>
+<script src="scripts/data/investors.js"></script>
+
+<script src="scripts/game.js"></script>
+<script src="scripts/menu.js"></script>
+<script src="scripts/newGame.js"></script>
+<script src="scripts/mods.js"></script>
+<script src="scripts/ui.js"></script>
+<script src="scripts/isodomIntegration.js"></script>
+<script src="scripts/office.js"></script>
+<script src="scripts/workstation.js"></script>
+<script src="scripts/workstation/researcher.js"></script>
+<script src="scripts/workstation/hrmanager.js"></script>
+<script src="scripts/workstation/manager.js"></script>
+<script src="scripts/workstation/training.js"></script>
+<script src="scripts/workstation/retirement.js"></script>
+<script src="scripts/workstation/salesExecutive.js"></script>
+<script src="scripts/workstation/supporter.js"></script>
+<script src="scripts/workstation/recruitment.js"></script>
+<script src="scripts/workstation/changeskill.js"></script>
+<script src="scripts/workstation/outsourcingExecutive.js"></script>
+<script src="scripts/lifecycle2.js"></script>
+<script src="scripts/outsourcingTask.js"></script>
+<script src="scripts/EmployeeRunners/developer.js"></script>
+<script src="scripts/EmployeeRunners/leadDeveloper.js"></script>
+<script src="scripts/EmployeeRunners/salesExecutive.js"></script>
+<script src="scripts/EmployeeRunners/outsourcingExecutive.js"></script>
+<script src="scripts/EmployeeRunners/researcher.js"></script>
+<script src="scripts/EmployeeRunners/supporter.js"></script>
+<script src="scripts/EmployeeRunners/recruiter.js"></script>
+<script src="scripts/finance.js"></script>
+<script src="scripts/purchase.js"></script>
+<script src="scripts/researchTree.js"></script>
+<script src="scripts/competitors.js"></script>
+<script src="scripts/products.js"></script>
+<script src="scripts/productFeatures.js"></script>
+<script src="scripts/productMarketing.js"></script>
+<script src="scripts/productAds.js"></script>
+<script src="scripts/productSupport.js"></script>
+<script src="scripts/productSell.js"></script>
+<script src="scripts/employees/employees.js"></script>
+<script src="scripts/company.js"></script>
+<script src="scripts/inventory.js"></script>
+<script src="scripts/gameover.js"></script>
+<script src="scripts/gamecompleted.js"></script>
+<script src="scripts/message.js"></script>
+<script src="scripts/notifications.js"></script>
+<script src="scripts/cityMap.js"></script>
+<script src="scripts/investmentProject.js"></script>
+<script src="scripts/racks.js"></script>
+<script src="scripts/rack.js"></script>
+<script src="scripts/controller.js"></script>
+<script src="scripts/help.js"></script>
+<script src="scripts/jitter.js"></script>
+<script src="scripts/outsourcing.js"></script>
+
+</body>
+</html>

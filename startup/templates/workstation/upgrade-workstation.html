@@ -1,0 +1,27 @@
+<div class="alert alert-info text-center text-bold" localize="upgrade_desk_description"></div>
+
+<div class="item-list horizontal">
+    <div class="item" ng-repeat="workstationType in workstationUpgradeCtrl.workstationTypes track by workstationType.name">
+        <h3 localize="{{workstationType.name}}"></h3>
+        <div class="content">
+            <img style="width: 80%;" ng-src="assets/items/{{ workstationType.thumbnail}}"/>
+
+            <button class="blue"
+                    ng-click="workstationUpgradeCtrl.upgradeWorkstation(workstationType.name, workstationType.priceDifferenceToCurrentWorkstation)"
+                    ng-if="!workstationType.isSame && workstationType.unlocked">
+                <span ng-if="workstationType.isUpgrade" localize="upgrade"></span>
+                <span ng-if="!workstationType.isUpgrade" localize="downgrade"></span>
+                ({{workstationType.priceDifferenceToCurrentWorkstation | currency}})
+            </button>
+            <div ng-if="!workstationType.isSame && !workstationType.unlocked" class="alert alert-info" localize="not_unlocked" ng-click="$root.setActiveView('researchTree', 'Office')"></div>
+            <div ng-if="workstationType.isSame" class="alert alert-info" localize="current"></div>
+        </div>
+    </div>
+</div>
+
+<div class="flex1 flex-super-center">
+    <button ng-click="$parent.ctrl.tab = 'stats'"
+            class="cancel"
+            localize="back">
+    </button>
+</div>

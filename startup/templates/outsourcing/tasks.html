@@ -1,0 +1,54 @@
+<div class="padding" ng-show="tasksCtrl.task == null">
+    <table class="medium hovered tasks" ts-wrapper>
+        <thead>
+        <tr>
+            <th ts-criteria="taskNumber" ts-default="descending"></th> <!-- Only for setting tablesort default -->
+            <th ts-criteria="clientName" localize="client"></th>
+            <th ts-criteria="requirements" localize="requirements"></th>
+            <th ts-criteria="hoursLeft" localize="time_left"></th>
+            <th ts-criteria="deadline" localize="deadline"></th>
+            <th ts-criteria="currentBid" localize="current_bid"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="info in tasksCtrl.tasks track by info.id | orderBy: '-timestamp'" ts-repeat ts-hide-no-data ng-click="tasksCtrl.task = info.task"
+            ng-class="{ dimmed: info.task.delivered || info.task.canceled || info.task.won == false }">
+            <td>#{{ info.taskNumber }}</td>
+            <td>
+                <img ng-if="info.logoPath != null" ng-src="{{ ::info.logoPath }}" class="companyLogo small">
+                <span class="align-middle">{{ ::info.clientName }}</span>
+            </td>
+            <td>
+                <table class="small">
+                    <tr ng-repeat="requirement in info.requirements track by requirement.name">
+                        <td style="width: 1%">
+                            <component show-demand="true" component="::requirement.component" class="tiny"></component>
+                        </td>
+                        <td>
+                            <b>{{::requirement.amount}}x</b> {{ ::requirement.name }}
+                        </td>
+                    </tr>
+                </table>
+            </td>
+            <td>
+                <span ng-show="info.hoursLeft > 0" localize="x_hours" localize-data-hours="{{ info.hoursLeft }}"></span>
+                <span ng-show="info.hoursLeft <= 0" localize="outsourcing_expired"></span>
+            </td>
+            <td>
+                <span localize="x_days" ng-show="!info.task.delivered" localize-data-days="{{ info.deadline }}"></span>
+                <span localize="awaiting_delivery" class="color-blue small" ng-show="info.task.won && info.task.hoursLeft <= 0 && !info.task.delivered"></span>
+                <span localize="delivered" ng-show="info.task.delivered"></span>
+                <span localize="canceled" ng-show="info.task.canceled"></span>
+            </td>
+            <td>{{ info.currentBid | currency:'$':0 }}</td>
+        </tr>
+        </tbody>
+    </table>
+    <div class="alert alert-info margin-top" localize="tip_outsourcing"></div>
+</div>
+
+<outsourcing-task ng-if="tasksCtrl.task != null" task="tasksCtrl.task"></outsourcing-task>
+
+<div class="cancel-bar" ng-if="tasksCtrl.task != null">
+    <button class="cancel" ng-click="tasksCtrl.task = null" localize="back"></button>
+</div>

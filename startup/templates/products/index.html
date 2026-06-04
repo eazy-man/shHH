@@ -1,0 +1,72 @@
+<h1>
+    <!--<i class="fa {{ ctrl.productType.faIcon }}"></i>-->
+    <span class="company-name" ng-click="ctrl.showLogo()" tooltip-html="ctrl.strings.change" tooltip-append-to-body="true">
+        <img ng-src="{{ ctrl.product.logoPath }}" ng-if="ctrl.product.logoPath != null" class="website-logo">
+        {{ ctrl.product.name }}
+    </span>
+    <span ng-if="ctrl.tab == 'create'" localize="create_product"></span>
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<div class="buttons-container">
+    <button
+            class="yellow small"
+            ng-click="ctrl.showSellWebsite()"
+            ng-class="{ disabled: ctrl.product.investor && ctrl.product.investor.share > 0 }"
+            tooltip-enable="ctrl.product.investor && ctrl.product.investor.share > 0"
+            tooltip-append-to-body="true"
+            uib-tooltip="{{::ctrl.buyoutRequiredText}}"
+            ng-if="ctrl.product != null"
+    >
+        <span localize="sell_website"></span>
+        <span ng-if="ctrl.product.sellingRound.offers.length > 0">({{ctrl.product.sellingRound.offers.length}})</span>
+    </button>
+
+    <button
+            class="red small"
+            ng-click="!(ctrl.product.investor && ctrl.product.investor.share > 0) && ctrl.deleteProduct(ctrl.product)"
+            ng-if="ctrl.product != null"
+            localize="delete_website"
+            ng-class="{ disabled: ctrl.product.investor && ctrl.product.investor.share > 0 }"
+            tooltip-enable="ctrl.product.investor && ctrl.product.investor.share > 0"
+            tooltip-append-to-body="true"
+            uib-tooltip="{{::ctrl.buyoutRequiredText}}"
+    ></button>
+</div>
+
+
+<ul class="tab-list" style="display: inline-block; margin-bottom: 0;"
+    ng-if="ctrl.product.id != null">
+    <li ng-class="{ active: ctrl.tab == 'stats' }" ng-mousedown="ctrl.tab = 'stats'" title="{{ctrl.strings.stats}}"><i
+            class="fa fa-bar-chart"></i> <span
+            localize="stats"></span></li>
+    <li ng-class="{ active: ctrl.tab == 'features' }" ng-mousedown="ctrl.tab = 'features'"
+        title="{{ctrl.strings.features}}"><i class="fa fa-bullhorn"></i>
+        <span localize="features"></span></li>
+    <li ng-class="{ active: ctrl.tab == 'hosting' }" ng-mousedown="ctrl.tab = 'hosting'"
+        title="{{ctrl.strings.hosting}}"><i class="fa fa-server"></i> <span
+            localize="hosting"></span></li>
+    <li ng-class="{ active: ctrl.tab == 'marketing' }" ng-mousedown="ctrl.tab = 'marketing'"
+        title="{{ctrl.strings.marketing}}"><i class="fa fa-bullhorn"></i>
+        <span localize="marketing"></span></li>
+    <li ng-class="{ active: ctrl.tab == 'vc' }" ng-click="ctrl.tab = 'vc'" title="{{ctrl.strings.vc}}"><i
+            class="fa fa-money"></i>
+        <span localize="vc"></span></li>
+    <li ng-class="{ active: ctrl.tab == 'support' }" ng-click="ctrl.tab = 'support'" title="{{ctrl.strings.support}}"><i
+            class="fa fa-life-ring"></i>
+        <span localize="support"></span></li>
+</ul>
+
+<product-stats ng-if="ctrl.tab == 'stats'" class="tab-content"></product-stats>
+<product-create ng-if="ctrl.tab == 'create'" class="tab-content"
+                ng-class="{ full: ctrl.product == null}"></product-create>
+<product-hosting ng-if="ctrl.tab == 'hosting'" class="tab-content"></product-hosting>
+<product-marketing ng-if="ctrl.tab == 'marketing'" class="tab-content optimize-scroll"></product-marketing>
+<product-features ng-if="ctrl.tab == 'features' && ctrl.view == ''"
+                  class="tab-content optimize-scroll"></product-features>
+<product-frameworks ng-if="ctrl.tab == 'features' && ctrl.view == 'frameworks'"
+                    class="tab-content"></product-frameworks>
+<product-vc ng-if="ctrl.tab == 'vc'" class="tab-content optimize-scroll"></product-vc>
+<product-support ng-if="ctrl.tab == 'support'" class="tab-content"></product-support>
+<product-logo ng-if="ctrl.tab == 'logo'" class="tab-content"></product-logo>
+<product-sell ng-if="ctrl.tab == 'sell'" class="tab-content"></product-sell>

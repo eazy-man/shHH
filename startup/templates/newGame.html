@@ -1,0 +1,268 @@
+<h1>
+    <span localize="new_game"></span>
+    <i class="fa fa-times pull-right close-button" ng-click="$parent.ctrl.view = null"></i>
+</h1>
+
+<ul class="tab-list text-center">
+    <li ng-class="{active: ctrl.step == 1}" localize="create_game_gamemode_company_name"></li>
+    <li ng-class="{active: ctrl.step == 2}" ng-if="ctrl.mode == 'custom'" localize="game_settings"></li>
+    <li ng-class="{active: ctrl.step == 3}" localize="create_game_setup_ceo"></li>
+    <li ng-class="{active: ctrl.step == 4}" localize="create_game_configure_website"></li>
+</ul>
+
+<!-- Step 1 -->
+<div class="tab-content step1" ng-if="ctrl.step == 1" style="justify-content: space-between">
+    <h3 class="text-center" localize="select_game_mode"></h3>
+
+    <div class="item-list flex-row game-modes">
+        <div class="item flex1 hover" ng-click="ctrl.mode = 'career'" ng-class="{active: ctrl.mode == 'career'}">
+            <h3>
+                <i class="fa fa-black-tie"></i>
+                <span localize="career_mode"></span></h3>
+            <div class="content text-center flex-column" style="justify-content: space-between">
+                <p localize="career_mode_description"></p>
+
+                <div class="alert alert-success text-center margin-top text-bold" localize="recommend_for_new_players"></div>
+
+                <div class="margin-bottom">
+                    <button class="small blue" localize="select"></button>
+                </div>
+            </div>
+        </div>
+
+        <div class="item flex1 hover" ng-click="ctrl.mode = 'custom'" ng-class="{active: ctrl.mode == 'custom'}">
+            <h3>
+                <i class="fa fa-cogs"></i>
+                <span localize="custom_game"></span>
+            </h3>
+            <div class="content text-center flex-column" style="justify-content: space-between">
+                <p localize="custom_game_description"></p>
+
+                <div class="margin-bottom">
+                    <button class="small blue" localize="select"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="text-center" localize="choose_company_name"></h3>
+
+    <div class="form-group padding flex-row">
+        <input class="form-control text-center" id="companyName" maxlength="31" name="companyName" type="text"
+               placeholder="{{ctrl.strings.gettingstarted_name_placeholder}}" ng-minlength="3"
+               ng-model="ctrl.companyName"
+               autocomplete="off" required>
+        <button class="blue margin-left small" ng-click="ctrl.randomCompanyName()" tooltip="{{ ctrl.strings.generate_random_name }}">
+            <i class="fa fa-random"></i>
+        </button>
+    </div>
+
+    <div class="text-center margin-bottom">
+        <button class="green big" localize="next" ng-disabled="!ctrl.step1valid" ng-click="ctrl.goToStep(ctrl.mode == 'career' ? 3 : 2)"></button>
+    </div>
+</div>
+
+<!-- Step 2 -->
+<div class="tab-content step2" ng-if="ctrl.step == 2" style="justify-content: space-between;">
+    <div class="item-list width70 margin-auto">
+        <div class="item">
+            <h3 localize="game_settings"></h3>
+            <div class="content">
+                <table class="big">
+                    <tr>
+                        <td class="width50" localize="game_variables_ceo_starting_age"></td>
+                        <td>
+                            <input class="secondary-color" style="width: 65%" type="range" min="18" max="60" ng-model="ctrl.variables.ceoStartingAge">
+                            <div class="inline-block small" localize="x_years_old" localize-data-years="{{ctrl.variables.ceoStartingAge}}"></div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td localize="game_variables_ceo_aging"></td>
+                        <td>
+                            <div class="toggle-switch"
+                                 ng-class="{ active: ctrl.variables.disableCeoAging }"
+                                 ng-click="ctrl.variables.disableCeoAging = !ctrl.variables.disableCeoAging">
+                                <span></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td localize="game_variables_employee_aging"></td>
+                        <td>
+                            <div class="toggle-switch"
+                                 ng-class="{ active: ctrl.variables.disableEmployeeAging }"
+                                 ng-click="ctrl.variables.disableEmployeeAging = !ctrl.variables.disableEmployeeAging">
+                                <span></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td localize="game_variables_disable_investor"></td>
+                        <td>
+                            <div class="toggle-switch"
+                                 ng-class="{ active: ctrl.variables.disableInvestor }"
+                                 ng-click="ctrl.variables.disableInvestor = !ctrl.variables.disableInvestor">
+                                <span></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td localize="game_variables_starting_money"></td>
+                        <td>
+                            <input type="number" ng-model="ctrl.variables.startingMoney">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td localize="game_variables_everything_unlocked"></td>
+                        <td>
+                            <div class="toggle-switch"
+                                 ng-class="{ active: ctrl.variables.everythingUnlocked }"
+                                 ng-click="ctrl.variables.everythingUnlocked = !ctrl.variables.everythingUnlocked">
+                                <span></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                           <span localize="game_variables_disable_workstation_limit"></span>
+                            <tooltip key="game_variables_disable_workstation_limit_description" class="color-red"></tooltip>
+                        </td>
+                        <td>
+                            <div class="toggle-switch"
+                                 ng-class="{ active: ctrl.variables.disableWorkstationLimit }"
+                                 ng-click="ctrl.toggleWorkstationLimit()">
+                                <span></span>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span localize="game_variables_days_per_year"></span>
+                        </td>
+                        <td>
+                            <input class="secondary-color" style="width: 65%" type="range" min="10" max="365" ng-model="ctrl.variables.daysPerYear">
+                            <div class="inline-block small" localize="x_days" localize-data-days="{{ctrl.variables.daysPerYear}}"></div>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center margin-bottom">
+        <button class="cancel small" localize="back" ng-click="ctrl.goToStep(-1)"></button>
+        <button class="green big" localize="next" ng-click="ctrl.goToStep(3)"></button>
+    </div>
+</div>
+
+<!-- Step 3 -->
+<div class="tab-content text-center step3 flex-row" ng-if="ctrl.step == 3" style="justify-content: space-between;">
+    <div class="item-list">
+        <div class="item">
+            <h3 localize="choose_name_for_ceo"></h3>
+            <div class="content flex-row width70 margin-auto">
+                <input type="text" ng-model="ctrl.ceo.name" placeholder="{{ ctrl.strings.ceo_name_placeholder }}" class="text-center" maxlength="20">
+                <button class="blue margin-left small" ng-click="ctrl.randomCeoName()" tooltip="{{ ctrl.strings.generate_random_name }}">
+                    <i class="fa fa-random"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="item-list flex-row">
+        <div class="item flex2">
+            <h3 localize="avatar"></h3>
+            <div class="content">
+                <div ng-repeat="avatar in ['male1', 'male2', 'male3', 'female1', 'female2', 'female3']"
+                     class="avatar-image inline-block margin"
+                     style="background-image: url('assets/people/{{avatar}}.png')"
+                     ng-class="{ active: ctrl.ceo.avatar == avatar }"
+                     ng-mousedown="ctrl.ceo.avatar = avatar"></div>
+            </div>
+        </div>
+        <div class="item flex2">
+            <h3 localize="headline_backstory"></h3>
+            <div class="content" style="padding: 0">
+                <div class="backstory-selector">
+                    <button class="blue small" ng-click="ctrl.switchBackstory(-1)"><i class="fa fa-chevron-left"></i></button>
+                    <h4 class="{{ ctrl.backstory.employeeTypeName}}"><icon class="{{ ctrl.backstory.employeeTypeName}}"></icon>{{ ctrl.backstory.label }}</h4>
+                    <button class="blue small" ng-click="ctrl.switchBackstory(1)"><i class="fa fa-chevron-right"></i></button>
+                </div>
+                <p>{{ ctrl.backstory.description }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center margin-bottom">
+        <button class="cancel small" localize="back" ng-click="ctrl.goToStep(ctrl.mode == 'career' ? -2 : -1)"></button>
+        <button class="green big" localize="next" ng-disabled="!ctrl.step3valid" ng-click="ctrl.goToStep(4)"></button>
+    </div>
+</div>
+
+<!-- Step 4 -->
+<div class="tab-content step4 flex-row" ng-if="ctrl.step == 4" style="justify-content: space-between;">
+    <div class="item-list">
+        <div class="item">
+            <h3 localize="choose_website_name"></h3>
+
+            <div class="content flex-row width70 margin-auto">
+                <button class="cancel margin-right" tooltip="{{ ctrl.strings.button_change_logo}}" style="padding:0; width: 10%" ng-click="ctrl.showLogos = !ctrl.showLogos">
+                    <img ng-src="{{ctrl.product.logoPath}}" class="companyLogo small">
+                </button>
+                <input class="text-center" type="text"
+                       ng-model="ctrl.product.name"
+                       ng-class="{ invalid: ctrl.product.name.length < 3 }"
+                       placeholder="{{ ctrl.strings.website_name_placeholder }}"
+                       restrict-to="[a-zA-Z0-9/\s]+"
+                       maxlength="20">
+
+                <button class="blue margin-left small" ng-click="ctrl.randomWebsiteName()" tooltip="{{ctrl.strings.generate_random_name}}">
+                    <i class="fa fa-random"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div ng-show="!ctrl.showLogos" class="flex-column item-list margin">
+        <div class="flex3" style="overflow: auto;">
+            <div class="item-list horizontal dragscroll">
+                <div class="item product-type"
+                     ng-repeat="info in ctrl.productTypes track by info.productType.name"
+                     ng-class="{ active: (ctrl.product.productTypeName == info.productType.name || ctrl.product.productTypeName == info.productType.name) }"
+                     ng-click="ctrl.product.productTypeName = info.productType.name">
+                    <h3>
+                        <i class="fa {{ info.productType.faIcon }}"></i>
+                        <span localize="{{ info.productType.name }}"></span>
+                    </h3>
+
+                    <div class="content text-center flex-content">
+                        <h4 localize="competitors"></h4>
+
+                        <div style="display: inline-block; text-align: center;">
+                            <div class="large flex-super-center" style="float: left; clear: both; padding: 3px 0;"
+                                 ng-repeat="competitor in info.competitors track by competitor.id">
+                                <img ng-src="{{competitor.logoPath}}" class="companyLogo small">
+                                {{ competitor.name }}
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <button class="blue large margin-top" localize="select"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div ng-show="ctrl.showLogos" class="margin flex1 overflow-auto">
+        <div  class="logo-picker">
+            <img ng-repeat="logo in ctrl.logos" ng-src="{{logo.url}}"
+                 class="website-logo"
+                 ng-mousedown="ctrl.selectLogo(logo)">
+        </div>
+    </div>
+
+    <div class="text-center margin-bottom">
+        <button class="cancel small" localize="back" ng-click="ctrl.goToStep(-1)"></button>
+        <button class="green big" localize="start_game" ng-disabled="!ctrl.step4valid" ng-click="ctrl.startGame()"></button>
+    </div>
+</div>

@@ -1,0 +1,83 @@
+<div class="item flex1 requirements">
+    <h3 localize="requirements"></h3>
+    <div class="content">
+        <div class="alert alert-info text-bold text-center" localize="outsourcing_requirements_description"></div>
+
+        <table>
+            <tr ng-repeat="i in [0,1,2,3] track by i">
+                <td class="width70">
+                    <ui-select ng-model="selectedItem"
+                               theme="select2"
+                               on-select="createCtrl.selectRequirement($item, i)"
+                               append-to-body="true">
+                        <ui-select-match placeholder="Select requirement">
+                            <div class="dropdown-component">
+                                <component component="$select.selected.component"/>
+                                <span>{{$select.selected.label}}</span>
+                            </div>
+                        </ui-select-match>
+                        <ui-select-choices repeat="item in createCtrl.components | propsFilter: { label: $select.search }">
+                            <div class="dropdown-component">
+                                <component component="item.component"/>
+                                <span ng-bind-html="item.label | highlight: $select.search"></span>
+                            </div>
+                        </ui-select-choices>
+                    </ui-select>
+                </td>
+                <td><input type="number" value="0" class="text-center"
+                           ng-disabled="createCtrl.task.requirements[i] == null"
+                           ng-model="createCtrl.task.requirements[i].amount"
+                           ng-change="createCtrl.amountChange(i)"
+                /></td>
+            </tr>
+        </table>
+    </div>
+</div>
+<div class="flex1 flex-column">
+    <div class="item terms">
+        <h3 localize="terms"></h3>
+        <div class="content">
+            <div class="deadline">
+                <h4 localize="deadline"></h4>
+
+                <table>
+                    <tr>
+                        <td style="width: 40%" class="text-right">In</td>
+                        <td style="width: 20%"><input type="number" min="0" class="text-center"
+                                                      ng-model="createCtrl.deadlineDays"></td>
+                        <td style="width: 40%" localize="days"></td>
+                    </tr>
+                </table>
+
+                <div class="text-center">
+                    <rzslider class="grey hide-bubbles"
+                              rz-slider-options="createCtrl.sliderOptions"
+                              rz-slider-model="createCtrl.deadlineDays"></rzslider>
+                    <table class="price-range-indicator percent-33 margin-top reverse">
+                        <tr>
+                            <td localize="expensive"></td>
+                            <td localize="average"></td>
+                            <td localize="cheap"></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <table class="posting-fee big">
+                <tr>
+                    <td localize="submission_fee" class="width70"></td>
+                    <td class="text-bold">{{ createCtrl.task.fee | currency: '$':0 }}</td>
+                </tr>
+                <tr>
+                    <td localize="estimated_price"></td>
+                    <td class="text-bold">{{ createCtrl.estimatedPrice | currency: '$':0 }}</td>
+                </tr>
+            </table>
+
+        </div>
+    </div>
+
+    <div class="text-center">
+        <button class="big margin-bottom" ng-click="createCtrl.submitTask()" localize="submit_task" ng-disabled="createCtrl.marketValue == 0"></button>
+    </div>
+</div>

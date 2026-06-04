@@ -1,0 +1,16 @@
+<h1>
+    <i class="fa fa-handshake-o"></i>
+    <span localize="outsourcing"></span>
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+
+<ul class="tab-list" style="width: 100%; display: inline-block;">
+    <li ng-class="{ active: ctrl.tab == 'tasks' }" ng-click="ctrl.tab = 'tasks'" localize="tasks"></li>
+    <li ng-class="{ active: ctrl.tab == 'marketprices' }" ng-click="ctrl.tab = 'marketprices'" localize="marketprices"></li>
+</ul>
+
+<div class="tab-content optimize-scroll">
+    <tasks ng-if="ctrl.tab == 'tasks'"></tasks>
+    <market-prices ng-if="ctrl.tab == 'marketprices'" class="padding"></market-prices>
+</div>

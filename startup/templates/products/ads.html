@@ -1,0 +1,58 @@
+<div class="item-list flex-column" style="height: 100%;">
+    <div class="item" style="margin-bottom: 0">
+        <h3 localize="schedule"></h3>
+        <div class="ads-calendar dragscroll">
+            <table>
+                <tr>
+                    <td></td>
+                    <td class="day" ng-repeat="day in adsCtrl.days track by day.number">
+                        {{ day.dayName }}<br>
+                        <span class="dimmed" localize="topbar_day" localize-data-day="{{ day.number }}"></span></td>
+                    <td></td>
+                </tr>
+            </table>
+            <div ng-repeat="featureInfo in adsCtrl.features track by featureInfo.instance.id">
+                <div class="feature-row" style="width: {{adsCtrl.rowWidth}}px">
+                    <div class="slots">
+                        <div class="ad_type"><i class="fa {{featureInfo.feature.faIcon }}"></i> <span
+                                localize="{{ featureInfo.feature.name }}"></span></div>
+
+                        <ul ng-sortable="featureInfo.sortConfig">
+                            <li ng-repeat="slot in featureInfo.slots" class="slot" ng-class="{ draggable: slot.adSpace != null}">
+                                <ad-entry ng-if="slot.adSpace != null">
+                                    <h1>
+                                        <img ng-src="{{ slot.competitorProduct.logoPath }}" class="companyLogo small">
+                                        {{ slot.competitorProduct.name }}</h1>
+                                    <h2><i class="fa {{ featureInfo.feature.faIcon }}"></i> CPM: {{ slot.adSpace.cpm | currency }}</h2>
+                                </ad-entry>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="item flex1 history">
+        <h3 class="history-header">
+            <i class="fa fa-chevron-circle-left color-darkblue" ng-click="adsCtrl.changeDay(-1)"></i>
+            <span class="dayString">{{ adsCtrl.selectedDayString }} </span>
+            <i class="fa fa-chevron-circle-right color-darkblue"  ng-click="adsCtrl.changeDay(1)"></i>
+        </h3>
+        <div class="content">
+            <table>
+                <tr ng-repeat="adInfo in adsCtrl.selectedDayAds track by adInfo.ad.id">
+                    <td class="width33">
+                        <ad-entry style="zoom: 0.7">
+                            <h1>
+                                <img ng-src="{{ adInfo.competitorProduct.logoPath }}" class="companyLogo small">
+                                {{ adInfo.competitorProduct.name }}</h1>
+                            <h2><i class="fa {{ adInfo.feature.faIcon }}"></i> CPM: {{ adInfo.ad.cpm | currency }}</h2>
+                        </ad-entry>
+                    </td>
+                    <td class="width33">{{ adInfo.ad.impressions | number }}</td>
+                    <td class="width33">{{ adInfo.revenue | currency:'$':0 }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

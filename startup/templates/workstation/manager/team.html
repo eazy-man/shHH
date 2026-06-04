@@ -1,0 +1,42 @@
+<div class="padding optimize-scroll" style="overflow-y: auto;">
+    <p localize="manager_tip" class="dimmed text-center padding"></p>
+    <hr>
+    <table class="big">
+        <tr>
+            <td localize="charge_in"></td>
+            <td class="text-bold" style="width: 70%;">{{ $root.selectedWorkstation.employee.numberOfControlledEmployees }}/{{ ctrl.maxInCharge }}</td>
+        </tr>
+        <tr>
+            <td localize="bonus_per_employee"></td>
+            <td class="text-bold">
+                <span ng-if="ctrl.controlledEmployees.length">{{ ctrl.bonusPerEmployee }}%</span>
+                <span ng-if="!ctrl.controlledEmployees.length">-</span>
+            </td>
+        </tr>
+    </table>
+    <hr>
+    <table class="medium hovered" ts-wrapper>
+        <thead>
+        <tr>
+            <th ts-criteria="name" localize="name"></th>
+            <th ts-criteria="employeeTypeName" localize="type"></th>
+            <th ts-criteria="bool" localize="status" class="text-right"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="employee in ctrl.availableEmployees track by employee.id" ts-repeat ts-hide-no-data>
+            <td class="text-bold">{{ employee.name }}</td>
+            <td ts-name="{{ employee.employeeTypeName }}">
+                <icon class="{{employee.employeeTypeName }}"></icon> <span class="{{ employee.employeeTypeName }}" localize="{{ employee.level }}"></span>
+            </td>
+            <td class="text-right" ts-name="{{ $root.selectedWorkstation.employee.id == employee.managerId }}">
+                <button class="small cancel" style="margin: 1px;" ng-click="ctrl.showEmployee(employee)" tooltip="{{ Language[go_to_employee] }}"><i class="fa fa-user"></i></button>
+                <div ng-click="ctrl.setEmployeeToManager(employee)" ng-class="{'active': $root.selectedWorkstation.employee.id == employee.managerId }"
+                     class="toggle-switch pull-right">
+                    <span></span>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>

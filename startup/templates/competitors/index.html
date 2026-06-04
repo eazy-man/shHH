@@ -1,0 +1,18 @@
+<h1>
+    <i class="fa fa-th-large"></i>
+    <span localize="competitors"></span>
+
+    <i class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<ul class="tab-list" style="display: inline-block; margin-bottom: 0;">
+    <li ng-class="{ active: ctrl.tab == 'list' && ctrl.productType == null }" ng-click="ctrl.tab = 'list'; ctrl.productType = null" localize="global"></li>
+    <li ng-class="{ active: ctrl.tab == 'list' && ctrl.productType == productTypeName }"
+        ng-click="ctrl.tab = 'list'; ctrl.productType = productTypeName;"
+        ng-repeat="productTypeName in ctrl.productTypeNames"
+        localize="{{productTypeName}}"></li>
+</ul>
+
+<competitor-products class="tab-content" ng-if="ctrl.tab == 'list'"></competitor-products>
+<competitor-details class="tab-content" ng-if="ctrl.tab == 'details'"></competitor-details>
+

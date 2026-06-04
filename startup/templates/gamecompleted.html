@@ -1,0 +1,127 @@
+<div class="dialog text-center">
+    <h1 class="color-green" localize="congratulations"></h1>
+    <div class="padding margin-top height100 flex-column" ng-if="ctrl.step == 1">
+
+        <div class="investor-dialog">
+            <img class="investor" src="images/investor.png"/>
+            <div class="text">
+                <div typed="ctrl.strings.retirement_congratulations" typed-oncompleted="ctrl.showNextButton"></div>
+                <button class="blue big margin-top animated fadeIn" ng-click="ctrl.goToStep(2)" ng-if="ctrl._showNextButton" localize="next"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="padding width100 height100 tab-content journey" ng-if="ctrl.step == 2">
+        <table class="width70" style="margin: 0 auto;">
+            <tbody ng-repeat="mainEntry in ctrl.entries">
+            <tr class="text-bold animated fadeIn" ng-if="mainEntry.visible"  id="{{mainEntry.id}}">
+                <td class="text-right">{{ mainEntry.year }}</td>
+                <td><div class="dot large"></div></td>
+                <td ng-bind-html="mainEntry.label" class="text-left"></td>
+            </tr>
+            <tr ng-repeat="subEntry in mainEntry.entries" ng-if="subEntry.visible" class="subentry animated fadeIn" id="{{subEntry.id}}">
+                <td></td>
+                <td><div class="dot"></div></td>
+                <td ng-bind-html="subEntry.label" class="text-left"></td>
+            </tr>
+            </tbody>
+        </table>
+
+        <div class="padding margin-top">
+            <button class="blue big margin-top animated fadeIn" ng-click="ctrl.goToStep(3)" id="step2-next" ng-if="ctrl._showNextButton" localize="next"></button>
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="padding margin-top height100 flex-column" ng-if="ctrl.step == 3">
+        <div class="investor-dialog">
+            <img class="investor" src="images/investor.png"/>
+            <div class="text">
+                <div typed="ctrl.strings.retirement_retirement_payment_intro" typed-oncompleted="ctrl.showNextButton"></div>
+                <button class="blue big animated fadeIn margin-top" ng-click="ctrl.goToStep(4)" ng-if="ctrl._showNextButton" localize="go_to_retirement_payment"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="padding width100 retirement-fund" ng-if="ctrl.step == 4">
+        <div class="progress-container">
+            <div class="retirement-progress">
+                <div class="indicator" style="transition-duration: 8.5s; width:{{ctrl.retirementFundProgress}}%"></div>
+                <ul class="points">
+                    <li ng-repeat="level in ctrl.levels"
+                        uib-popover-html="level.description"
+                        popover-trigger="mouseenter"
+                        popover-append-to-body="true"
+                        popover-title="{{ level.label }}"
+                        ng-class="{active: level.goal <= $root.settings.ceo.retirementFund.balance }">
+                        <div class="dot"></div>
+                        <div class="label">{{ level.label }}</div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <h3 class="dimmed" localize="retirement_fund_being_transferred"></h3>
+
+        <h2 count-up duration="9" end-val="$root.settings.ceo.retirementFund.balance"></h2>
+
+        <div class="congratulations">
+            <h2 localize="congratulations"></h2>
+            <h4 class="width70 margin-auto" ng-bind-html="ctrl.currentLevelDescription"></h4>
+            <h5 localize="retirement_thank_you_hard_work"></h5>
+
+            <div class="margin-top text-center">
+                <button class="big blue" localize="next" ng-click="ctrl.goToStep(6)"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 6 -->
+    <div class="padding step6 height100 flex-column flex-super-center" ng-if="ctrl.step == 6" ng-class="{'animated fadeOut': ctrl.days > 50}">
+        <img src="images/clock.svg" alt="">
+        <h3 ng-bind-html="ctrl.daysSinceRetirement"></h3>
+    </div>
+
+    <!-- Step 7 -->
+    <div class="padding step6 width70 margin-auto" ng-if="ctrl.step == 7">
+        <div class="flex-row animated fadeIn line" ng-repeat="line in ctrl.conversation" ng-if="line.visible">
+            <div class="avatar-image tiny" style="background-image: url('{{line.image}}')"></div>
+            <div class="flex1 bubble">
+                <b>{{ line.name }}</b> <span typed="line.message" typed-oncompleted="ctrl.showLine"></span>
+            </div>
+        </div>
+
+        <div class="animated fadeIn conversation-buttons" ng-if="ctrl._showNextButton">
+            <button class="cancel" localize="return_to_main_menu" ng-click="$root.setActiveView('menu')"></button>
+            <button class="green" localize="retirement_a_new_start" ng-click="ctrl.goToStep(8)"></button>
+        </div>
+    </div>
+
+    <!-- Step 8 -->
+    <div class="padding a-new-start animated fadeIn" ng-if="ctrl.step == 8">
+        <h3 style="margin-top: 0" localize="retirement_a_new_start"></h3>
+        <h4 localize="retirement_new_beginning_summary" localize-data-companyname="{{$root.settings.companyName}}"></h4>
+
+        <div class="item-list horizontal">
+            <div class="item" ng-repeat="employee in ctrl.employees">
+                <h3>{{ employee.name }}</h3>
+                <div class="content">
+                    <div class="avatar-image tiny" style="background-image: url('assets/people/{{ ::employee.avatar }}.png')"></div>
+                    <div class="{{ employee.employeeTypeName }} margin-top">
+                        <icon class="{{employee.employeeTypeName}}"></icon><span localize="{{employee.employeeTypeName}}"></span>
+                    </div>
+                    <div class="margin-top">
+                        {{ employee.speed | number: 0 }}% <span class="dimmed">({{employee.maxSpeed | number: 0 }}%)</span>
+                    </div>
+                    <div class="margin-top" localize="x_years_old" localize-data-years="{{ employee.ageInYears }}">
+                    </div>
+                    <div class="margin-top padding">
+                        <button ng-click="ctrl.startNewGame(employee)">Play as {{ employee.name }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

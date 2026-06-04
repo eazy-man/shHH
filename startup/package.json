@@ -1,0 +1,19 @@
+{
+  "description": "Startup Company - web version",
+  "name": "StartupCompany",
+  "productName": "Startup Company",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "npx serve . --listen 8080",
+    "dev": "npx serve . --listen 8080"
+  },
+  "dependencies": {
+    "bugsnag": "^2.4.3",
+    "countup.js-angular1": "^1.0.0",
+    "filenamify": "^2.1.0",
+    "ui-select": "^0.19.8"
+  },
+  "devDependencies": {
+    "serve": "^14.0.0"
+  }
+}

@@ -1,0 +1,87 @@
+<div class="dialog-container">
+    <div class="dialog" ng-show="view == 'building'">
+        <h1>
+            <i class="fa fa-times pull-right close-button" close-all-ui></i>
+            <span localize="{{ctrl.selectedBuilding.name}}_address"></span>
+        </h1>
+
+        <div class="padding">
+            <div class="text-center padding">
+                <img ng-src="{{ctrl.selectedBuilding.thumbnailPath}}">
+            </div>
+
+            <table class="medium shadow-box">
+                <tr>
+                    <td class="dimmed" localize="type"></td>
+                    <td class="text-bold" localize="{{ ctrl.selectedBuilding.type}}"></td>
+                </tr>
+                <tr ng-if="ctrl.selectedBuilding.type == 'Office'">
+                    <td class="dimmed" localize="max_workstations"></td>
+                    <td class="text-bold">{{ ctrl.selectedBuilding.workstations }}</td>
+                </tr>
+                <tr>
+                    <td class="dimmed" localize="floors"></td>
+                    <td class="text-bold">{{ ctrl.selectedBuilding.floors }}</td>
+                </tr>
+                <tr>
+                    <td class="dimmed" localize="payment_upfront" ng-class="{ 'color-red': ctrl.selectedBuilding.price > $root.settings.balance }"></td>
+                    <td class="text-bold" ng-class="{ 'color-red': ctrl.selectedBuilding.price > $root.settings.balance }">{{ ctrl.selectedBuilding.price | currency:'$':0 }}</td>
+                </tr>
+                <tr>
+                    <td class="dimmed" localize="rent"></td>
+                    <td class="text-bold" localize="amount_per_month"
+                        localize-data-amount="{{ctrl.selectedBuilding.rent}}"
+                        localize-data-amount-format="currency"></td>
+                </tr>
+                <tr ng-if="ctrl.selectedBuilding.temperature != null">
+                    <td class="dimmed" localize="initial_temperature"></td>
+                    <td class="text-bold">{{ ctrl.selectedBuilding.temperature | temperature }}</td>
+                </tr>
+            </table>
+
+            <div class="text-center">
+                <button class="blue margin-top"
+                        ng-disabled="ctrl.selectedBuilding.isActive || !ctrl.selectedBuilding.available"
+                        ng-click="ctrl.rentBuilding(ctrl.selectedBuilding)" localize="rent">
+                </button>
+                <button class="blue margin-top"
+                        ng-if="ctrl.selectedBuilding.isActive"
+                        ng-click="ctrl.goToBuilding(ctrl.selectedBuilding)" localize="go_to_building">
+                </button>
+            </div>
+        </div>
+    </div>
+    <investment-project class="dialog" project="ctrl.project" ng-if="view == 'investmentProject'"></investment-project>
+</div>
+
+<div class="map dragscroll">
+    <div class="map-assets">
+        <img src="assets/citymap/citymap.png">
+
+        <div ng-repeat="project in ctrl.investmentProjects">
+            <img class="investment-project" ng-src="{{project.image}}" style="top: {{project.position.top}}px;left: {{project.position.left}}px;">
+            <div ng-click="ctrl.showProject(project)" class="overlay" style="top: {{project.overlayPosition.top}}px;left: {{project.overlayPosition.left}}px;">
+                <h3 localize="{{ project.name }}_address"></h3>
+                <div class="office">
+                    <i class="fa fa-money"></i>
+                    <span localize="investment_project"></span>
+                </div>
+            </div>
+        </div>
+
+        <div ng-repeat="building in ctrl.buildings track by building.name"
+             ng-class="{ owned: building.name == $root.settings.hosting.buildingName || building.name == $root.settings.office.buildingName, unavailable: !building.available }"
+             ng-click="ctrl.showBuilding(building)"
+             class="overlay {{ building.name }}">
+            <h3 localize="{{ building.name }}_address"></h3>
+            <div class="hosting" ng-if="building.type == 'Hosting'">
+                <i class="fa fa-server"></i>
+                <span localize="hosting"></span>
+            </div>
+            <div class="office" ng-if="building.type == 'Office'">
+                <i class="fa fa-home"></i>
+                <span localize="office"></span>
+            </div>
+        </div>
+    </div>
+</div>

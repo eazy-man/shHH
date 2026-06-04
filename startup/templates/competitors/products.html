@@ -1,0 +1,33 @@
+<div class="padding optimize-scroll" style="overflow: auto;">
+    <table class="leaderboard big hovered">
+        <thead>
+        <tr>
+            <th style="width: 10%"></th>
+            <th style="width: 40%" localize="name"></th>
+            <th style="width: 30%" localize="valuation"></th>
+            <th localize="total_users"></th>
+        </tr>
+        </thead>
+        <tr ng-repeat="productInfo in productsCtrl.products track by productInfo.product.id"
+            ng-click="productsCtrl.showProduct(productInfo)"
+            ng-class="{ 'text-bold': productInfo.product.ageInDays != null, 'line-through': productInfo.product.merged }">
+            <td class="text-center">#{{$index+1}}</td>
+            <td>
+                <div style="display: flex; align-items:center;">
+                    <img ng-src="{{productInfo.product.logoPath}}" class="companyLogo small">
+                    {{ productInfo.product.name }}
+                </div>
+            </td>
+            <td>
+                {{ productInfo.valuation }}
+                <span class="dimmed small" ng-if="productInfo.ownership > 0">({{productInfo.ownership}}%)</span>
+            </td>
+            <td>
+                <span ng-if="productInfo.merge == null">{{ productInfo.totalUsers }}</span>
+                <span class="color-yellow small" ng-if="productInfo.merge != null" localize="merge_in_progress"></span>
+            </td>
+        </tr>
+    </table>
+
+    <div class="text-center dimmed padding" localize="tip_competitors"></div>
+</div>

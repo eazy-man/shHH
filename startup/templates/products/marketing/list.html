@@ -1,0 +1,59 @@
+<!-- List View -->
+<div ng-if="listCtrl.view == null" class="padding">
+    <h4 localize="create_campaign" class="text-center"></h4>
+    <div class="text-center">
+        <ul class="marketing-types">
+            <li ng-repeat="pack in listCtrl.marketingPackages track by pack.name"
+                ng-click="listCtrl.clickMarketingType(pack)"
+                ng-class="{disabled: pack.available == false }"
+                tooltip="{{pack.unlockText}}"
+                tooltip-enable="!pack.available">
+                <i class="fa {{ pack.faIcon }}"></i>
+                <div localize="{{pack.name}}"></div>
+            </li>
+        </ul>
+    </div>
+    <hr class="big">
+
+    <div class="alert alert-info text-center" localize="no_campaigns" ng-if="listCtrl.product.campaigns.length == 0"></div>
+
+    <table class="big hovered" ng-if="listCtrl.product.campaigns.length > 0">
+        <tr>
+            <th localize="type" style="width: 30%"></th>
+            <th localize="audience_reached" style="width: 20%"></th>
+            <th localize="conversion_rate" style="width: 15%"></th>
+            <th localize="budget" style="width: 20%"></th>
+            <th></th>
+        </tr>
+        <tr ng-repeat="info in listCtrl.campaignInfos track by info.campaign.id"
+            ng-click="listCtrl.selectedCampaignInfo = info; listCtrl.view = 'details';"
+            ng-class="{ 'line-through dimmed': info.progress.audienceReached >= 100 }">
+            <td>
+                <i class="fa fa-th"></i>
+                <span localize="{{ info.campaign.type }}"></span>
+            </td>
+            <td><span class="monospaced">{{ (info.progress.audienceReached || 0)}}%</span></td>
+            <td>{{ info.campaign.conversionRate }}%</td>
+            <td>{{ info.campaign.dailyBudget | currency:'$':0 }}</td>
+            <td class="buttons text-right">
+                <button class="small" ng-if="info.campaign.isRunning == false && info.progress.audienceReached < 100"
+                        ng-click="info.campaign.isRunning = true; $event.stopPropagation();">
+                    <i class="fa fa-play-circle large"></i>
+                </button>
+                <button class="small cancel" ng-if="info.campaign.isRunning == true && info.progress.audienceReached < 100"
+                        ng-click="info.campaign.isRunning = false; $event.stopPropagation();">
+                    <i class="fa fa-pause-circle large"></i>
+                </button>
+                <button class="small red" ng-click="listCtrl.deleteCampaign(info.campaign); $event.stopPropagation();">
+                    <i class="fa fa-times large"></i>
+                </button>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<!-- Create View -->
+<product-marketing-create ng-if="listCtrl.view == 'create'"></product-marketing-create>
+
+<!-- Details View -->
+<product-marketing-details ng-if="listCtrl.view == 'details'"></product-marketing-details>

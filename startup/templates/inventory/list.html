@@ -1,0 +1,44 @@
+<div class="flex-row padding">
+    <div class="flex1">
+        <span localize="sample_period"></span>
+        <div class="inline-block"
+             dropdown-select="ctrl.periods"
+             dropdown-model="ctrl.selectedPeriod"
+             dropdown-item-label="label"></div>
+    </div>
+    <div class="flex1 text-right">
+        <span localize="employee_type"></span>
+        <div class="inline-block"
+             dropdown-select="ctrl.employeeTypes"
+             dropdown-model="ctrl.selectedEmployeeType"
+             dropdown-item-label="label"></div>
+    </div>
+</div>
+
+<table class="medium border-top-2" ts-wrapper>
+    <thead>
+    <tr>
+        <th></th>
+        <th ts-criteria="name" localize="name"></th>
+        <th ts-criteria="amount" localize="amount"></th>
+        <th ts-criteria="production" localize="production"></th>
+        <th ts-criteria="consumption" localize="consumption"></th>
+        <th ts-criteria="change" localize="change"></th>
+    </tr>
+    </thead>
+
+    <tr ts-repeat ts-hide-no-data ng-repeat="stack in ctrl.stacks track by stack.name">
+        <td>
+            <component class="small" always-enabled="true" component="::stack.component"></component>
+        </td>
+        <td>{{ stack.name }}</td>
+        <td>{{ stack.amount }}</td>
+        <td><span ng-show="stack.production > 0">+</span>{{ stack.production }}</td>
+        <td><span ng-show="stack.consumption > 0">-</span>{{ stack.consumption }}</td>
+        <td ng-class="{ 'color-red': stack.change < 0, 'color-green': stack.change > 0 }">
+            <span ng-show="stack.change > 0">+</span>{{ stack.change }}
+        </td>
+    </tr>
+</table>
+
+<p ng-if="ctrl.stacks.length == 0" class="padding text-center color-red" localize="inventory_empty"></p>

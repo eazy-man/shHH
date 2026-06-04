@@ -1,0 +1,285 @@
+<h1>
+    <i class="fa fa-money"></i>
+    <span localize="finance"></span>
+    <i ng-if="!ctrl.forceANewLoan" class="fa fa-times pull-right close-button" close-all-ui></i>
+</h1>
+
+<ul class="tab-list" ng-if="!ctrl.forceANewLoan" style="width: 100%; display: inline-block;">
+    <li ng-class="{ active: ctrl.tab == 'budget' }" ng-click="ctrl.tab = 'budget'" localize="budget"></li>
+    <li ng-class="{ active: ctrl.tab == 'transactions' }" ng-click="ctrl.tab = 'transactions'"
+        localize="transactions"></li>
+    <li ng-class="{ active: ctrl.tab == 'loans' }" ng-click="ctrl.tab = 'loans'" id="step2" localize="loans"></li>
+</ul>
+<!-- Budget -->
+<div class="tab-content" ng-if="ctrl.tab == 'budget'">
+    <div class="flex-row item-list flex2">
+        <!-- Expenses -->
+        <div class="flex1 item bg-dimmed-red flex-column padding">
+            <h4 class="text-center" localize="next_30_days"></h4>
+            <div class="scrollbox optimize-scroll">
+                <table class="small">
+                    <tr ng-repeat="employee in ctrl.employees track by employee.id" ng-if="ctrl.employees.length <= 5">
+                        <td>{{ employee.name }}</td>
+                        <td class="text-right">{{ employee.salary | currency: '$': 0 }}</td>
+                    </tr>
+                    <tr ng-if="ctrl.employees.length > 5">
+                        <td localize="salaries"></td>
+                        <td class="text-right">{{ ctrl.totalSalaries | currency: '$': 0 }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <hr class="dark">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td localize="office_rent"></td>
+                        <td class="text-right">{{financeData.expenses.officeRent | currency:'$':0}}</td>
+                    </tr>
+                    <tr ng-repeat="loan in ctrl.loans track by loan.provider" ng-if="loan.amountLeft > 0">
+                        <td localize="transaction_loan" localize-data-provider="{{loan.provider}}"></td>
+                        <td class="text-right">{{ ctrl.calculateLoanText(loan) | currency:'$':0}}</td>
+                    </tr>
+                    <tr ng-repeat="entry in ctrl.activatedBenefits track by entry.benefit.name">
+                        <td localize="{{ entry.benefit.name }}"></td>
+                        <td class="text-right">{{ entry.cost.monthly | currency:'$':0 }}</td>
+                    </tr>
+                    <tr ng-if="financeData.expenses.hostingRent > 0">
+                        <td colspan="2">
+                            <hr class="dark">
+                        </td>
+                    </tr>
+                    <tr ng-if="financeData.expenses.hostingRent > 0">
+                        <td localize="hosting_rent"></td>
+                        <td class="text-right">{{financeData.expenses.hostingRent | currency:'$':0}}</td>
+                    </tr>
+                    <tr ng-if="financeData.expenses.hostingRent > 0">
+                        <td localize="hosting_power_bill"></td>
+                        <td class="text-right">{{financeData.expenses.hostingPowerBill | currency:'$':0}}</td>
+                    </tr>
+                    <tr ng-if="financeData.expenses.hostingRent > 0">
+                        <td localize="hosting_bandwidth"></td>
+                        <td class="text-right">{{financeData.expenses.hostingBandwidth | currency:'$':0}}</td>
+                    </tr>
+                    <tr ng-if="ctrl.hostingExpenses.length > 0">
+                        <td colspan="2">
+                            <hr class="dark">
+                        </td>
+                    </tr>
+                    <tr ng-repeat="expense in ctrl.hostingExpenses track by expense.product.id"
+                        ng-if="expense.amount > 0">
+                        <td localize="transaction_hosting" localize-data-name="{{ expense.product.name }}"></td>
+                        <td class="text-right">{{ expense.amount | currency:'$':0 }}</td>
+                    </tr>
+                    <tr ng-repeat="expense in ctrl.licenseExpenses track by expense.product.id">
+                        <td>
+                            {{ expense.product.name }}: <span localize="license_expenses"></span>
+                        </td>
+                        <td class="text-right">{{ expense.amount | currency:'$':0 }}</td>
+                    </tr>
+                    <tr ng-if="ctrl.marketingExpenses.length > 0">
+                        <td colspan="2">
+                            <hr class="dark">
+                        </td>
+                    </tr>
+                    <tr ng-repeat="expense in ctrl.marketingExpenses track by expense.id">
+                        <td localize="transaction_marketing_campaign"
+                            localize-data-productname="{{ expense.product.name }}"
+                            localize-data-campaigntype="{{ expense.marketingCampaignType }}">
+                        </td>
+                        <td class="text-right">{{ expense.amount | currency:'$':0 }}</td>
+                    </tr>
+                    <tr ng-if="ctrl.investmentProjects.length > 0">
+                        <td colspan="2">
+                            <hr class="dark">
+                        </td>
+                    </tr>
+                    <tr ng-repeat="project in ctrl.investmentProjects track by project.name" ng-if="!project.completed">
+                        <td localize="{{project.name}}"></td>
+                        <td class="text-right">{{ project.amount | currency:'$':0 }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <table>
+                <tr class="text-bold">
+                    <td localize="total"></td>
+                    <td class="text-right">-{{ ctrl.totalExpenses | currency : '$' : 0 }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Income -->
+        <div class="flex1 item bg-dimmed-green flex-column padding">
+            <h4 class="text-center">
+                <span localize="next_30_days"></span>
+                <tooltip key="next_30_days_description"></tooltip>
+            </h4>
+            <div class="scrollbox">
+                <table class="small">
+                    <tbody ng-repeat="productInfo in ctrl.incomeByProduct track by productInfo.id">
+                    <tr class="text-bold">
+                        <td>{{ productInfo.name }}</td>
+                    </tr>
+                    <tr ng-repeat="source in productInfo.sources track by source.label">
+                        <td class="padding-left">{{ source.label }}</td>
+                        <td class="text-right">{{ source.amount | currency : '$' : 0 }}</td>
+                    </tr>
+                    </tbody>
+                    <tr ng-if="financeData.income.outsourcingTasks > 0">
+                        <td localize="outsourcing_tasks"></td>
+                        <td class="text-right">{{ financeData.income.outsourcingTasks | currency : '$' : 0 }}</td>
+                    </tr>
+                    <tr ng-repeat="project in ctrl.investmentProjects track by project.name" ng-if="project.completed">
+                        <td localize="{{project.name}}"></td>
+                        <td class="text-right">{{ project.income | currency: '$' : 0 }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <hr class="dark">
+                        </td>
+                    </tr>
+                </table>
+            </div>
+
+            <table>
+                <tr class="text-bold">
+                    <td localize="total"></td>
+                    <td class="text-right">{{ financeData.income.totalIncome | currency : '$' : 0 }}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="flex-row item-list">
+        <div class="flex1 item padding" style="margin-top: 0">
+            <table class="medium">
+                <tr>
+                    <td localize="bank_balance"></td>
+                    <td class="text-right">{{ settings.balance | currency : '$' : 0 }}</td>
+                </tr>
+                <tr>
+                    <td localize="per_day"></td>
+                    <td class="text-right">{{ ctrl.profitPerDay | currency : '$' : 0 }}</td>
+                </tr>
+                <tr class="text-bold">
+                    <td localize="per_month"></td>
+                    <td class="text-right"
+                        ng-class="{'color-red': ctrl.profitPerMonth < 0, 'color-green': ctrl.profitPerMonth > 0 }">
+                        {{ ctrl.profitPerMonth | currency : '$' : 0 }}
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Transactions -->
+<div ng-if="ctrl.tab == 'transactions'" class="padding">
+    <table class="medium" ng-if="ctrl.transactions.length != 0">
+        <thead>
+        <tr>
+            <th style="width: 15vh;" localize="day"></th>
+            <th localize="label"></th>
+            <th style="width: 7vw;" localize="amount"></th>
+            <th style="width: 6vw;" class="text-right" localize="bank_balance"></th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr ng-repeat="transaction in ctrl.transactions track by transaction.id">
+            <td localize="topbar_day" localize-data-day="{{transaction.day}}"></td>
+            <td>{{ transaction.label }}</td>
+            <td ng-class="{ 'color-red': transaction.amount < 0, 'color-green': transaction.amount >= 0 }">
+                {{ transaction.amount | currency : '$' : 0 }}
+            </td>
+            <td class="text-right">{{ transaction.balance | currency : '$' : 0 }}</td>
+        </tr>
+        </tbody>
+    </table>
+
+
+    <div class="text-center" style="position: absolute; width: 100%; bottom: 20px;">
+        <button type="button" class="cancel square" ng-disabled="ctrl.page == 1"
+                ng-click="ctrl.page = ctrl.page-1"><i class="fa fa-chevron-circle-left"></i> <span
+                localize="previous"></span></button>
+        <button type="button" class="cancel square" ng-disabled="ctrl.page == ctrl.maxPage"
+                ng-click="ctrl.page = ctrl.page+1"><span localize="next"></span> <i
+                class="fa fa-chevron-circle-right"></i>
+        </button>
+    </div>
+
+    <p ng-if="ctrl.transactions.length == 0" localize="no_transactions"
+       class="padding color-red text-center"></p>
+</div>
+
+<!-- Loans -->
+<div ng-if="ctrl.tab == 'loans'" class="padding tab-content">
+    <p class="dimmed padding" style="margin-bottom: 0; padding-bottom: 0;" localize="loans_description"></p>
+
+    <div class="flex-column" style="justify-content: center; height: 100%;">
+        <div class="flex-row item-list loans">
+            <div class="item"
+                 ng-class="{active: loan.active }"
+                 ng-repeat="loan in ctrl.loans track by loan.provider">
+                <h3 class="text-center" style="margin: 0 0 10px 0;">{{ loan.provider }}</h3>
+                <div class="content">
+                    <table class="medium">
+                        <tr>
+                            <td class="dimmed" localize="amount"></td>
+                            <td class="text-right">{{ loan.amount | currency:'$':0 }}</td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed">
+                                <span localize="minimum_valuation"></span>
+                                <tooltip key="minimum_valuation_tooltip"></tooltip>
+                            </td>
+                            <td class="text-right">{{ loan.minimumValuation || 0 | currency:'$':0 }}</td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed" localize="plan"></td>
+                            <td class="text-right" localize="x_days" localize-data-days="{{ loan.days }}"></td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed" localize="interest"></td>
+                            <td class="text-right">{{ loan.interest }}%</td>
+                        </tr>
+                        <tr>
+                            <td class="dimmed" localize="daily_cost"></td>
+                            <td class="text-right">{{ loan.dailyPayment | currency:'$':0 }}</td>
+                        </tr>
+                        <tr class="text-bold">
+                            <td class="dimmed" localize="total"></td>
+                            <td class="text-right">{{ loan.dailyPayment * loan.days | currency:'$':0 }}</td>
+                        </tr>
+                        <tr>
+                            <td colspan="2">
+                                <hr style="margin: 10px 0;">
+                            </td>
+                        </tr>
+                        <tr ng-if="loan.active">
+                            <td class="dimmed" localize="time_left"></td>
+                            <td class="text-right" localize="x_days" localize-data-days="{{ loan.daysLeft }}"></td>
+                        </tr>
+                        <tr ng-if="loan.active">
+                            <td class="dimmed" localize="remaining"></td>
+                            <td class="text-right">{{ loan.amountLeft | currency:'$':0 }}</td>
+                        </tr>
+                    </table>
+                    <div class="text-center" style="margin: 1.5vh">
+                        <button type="button"
+                                class="square"
+                                ng-if="!loan.active"
+                                ng-click="ctrl.takeLoan(loan)"
+                                ng-class="{ disabled: (loan.minimumValuation != null && loan.minimumValuation > ctrl.companyValuation) }"
+                                tooltip-enable="(loan.minimumValuation != null && loan.minimumValuation > ctrl.companyValuation)"
+                                tooltip-html="ctrl.strings.loan_minimum_valuation_not_met"
+                                id="loan-button-{{$index}}"
+                                localize="take_loan"></button>
+
+                        <button type="button" class="square blue" ng-if="loan.active" ng-click="ctrl.payNow(loan)"
+                                localize="pay_now"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
