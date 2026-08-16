@@ -1257,6 +1257,53 @@ async function readResponseBytes(response, label) {
   return out;
 }
 
+// Multi-file ROM support: some ROMs are split into sequentially numbered
+// parts, e.g. "Patapon (USA).chd.part1" … "Patapon (USA).chd.part8". Given
+// the base URL (without the ".partN" suffix), this fetches part1, part2, …
+// in order and concatenates them into a single ROM. It stops as soon as a
+// part is missing, so it works for any part count (not just 8) — it just
+// keeps appending ".part" + N until the server says there's no more.
+async function fetchMultipartBytes(baseUrl, label) {
+  const partChunks = [];
+  let totalBytes = 0;
+  let partNum = 1;
+
+  while (true) {
+    const partUrl = baseUrl + ".part" + partNum;
+    let response;
+    try {
+      response = await fetch(partUrl, { mode: "cors" });
+    } catch(e) {
+      if (partNum === 1) throw new Error("Failed to fetch " + partUrl + ": " + e.message);
+      break; // ran out of parts
+    }
+    if (!response.ok) {
+      if (partNum === 1) throw new Error("HTTP " + response.status + " fetching " + partUrl);
+      break; // ran out of parts
+    }
+
+    const partLabel = label + " (part " + partNum + ")";
+    setStatus("Downloading " + partLabel, "run");
+    const bytes = await readResponseBytes(response, partLabel);
+    partChunks.push(bytes);
+    totalBytes += bytes.byteLength;
+    log("Multi-part download: fetched " + partUrl + " (" + formatBytes(bytes.byteLength) + ").", "ok");
+    partNum++;
+  }
+
+  if (!partChunks.length) throw new Error("No .part files found for " + baseUrl);
+
+  log("Multi-part download: assembling " + partChunks.length + " part(s), " + formatBytes(totalBytes) + " total.", "ok");
+  showLoading("Assembling " + label + " from " + partChunks.length + " part(s)…");
+  const out = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of partChunks) {
+    out.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return out;
+}
+
 async function addGameURLToLibrary(url) {
   const trimmed = url.trim();
   if (!trimmed) { showToast("Paste a game URL first"); return; }
@@ -1275,11 +1322,24 @@ async function addGameURLToLibrary(url) {
   setStatus("Downloading " + fallbackName, "run");
 
   try {
-    const response = await fetch(parsed.href, { mode: "cors" });
-    if (!response.ok) throw new Error("HTTP " + response.status + " " + response.statusText);
-    const headerName = filenameFromContentDisposition(response.headers.get("content-disposition"));
-    const name = (headerName || fallbackName).replace(/[^a-zA-Z0-9._-]/g, "_");
-    const bytes = await readResponseBytes(response, name);
+    let name = fallbackName.replace(/[^a-zA-Z0-9._-]/g, "_");
+    let bytes;
+
+    let response = null;
+    try { response = await fetch(parsed.href, { mode: "cors" }); } catch(e) { response = null; }
+
+    if (response?.ok) {
+      const headerName = filenameFromContentDisposition(response.headers.get("content-disposition"));
+      name = (headerName || fallbackName).replace(/[^a-zA-Z0-9._-]/g, "_");
+      bytes = await readResponseBytes(response, name);
+    } else {
+      // Direct fetch failed (e.g. 404) — the ROM may be split into
+      // sequential "<name>.part1", "<name>.part2", … files instead.
+      log("Direct download unavailable for " + parsed.href + (response ? " (HTTP " + response.status + ")" : "") + " — trying multi-part (.partN) files.", "warn");
+      showToast("Trying multi-part download…");
+      bytes = await fetchMultipartBytes(parsed.href, name);
+    }
+
     const storedName = await storeGameBytes(name, bytes);
     hideLoading();
     log("Library: downloaded " + storedName + " from " + parsed.href + " (" + formatBytes(bytes.byteLength) + ").", "ok");
@@ -4905,7 +4965,7 @@ refreshSavesTab();      // populate Saves tab from OPFS on load (no FS needed)
 // Show the loading screen immediately so the idle "open a game" start
 // screen never has a chance to flash on-screen while we fetch/check OPFS.
 showLoading("Loading game\u2026");
-const AUTOLOAD_GAME_NAME = "Toy Story 3.chd";
+const AUTOLOAD_GAME_NAME = "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/psp/patapatapon/Patapon%20(USA).chd";
 const AUTOLOAD_GAME_URL  = "/roms/" + encodeURIComponent(AUTOLOAD_GAME_NAME);
 (async () => {
   try {
