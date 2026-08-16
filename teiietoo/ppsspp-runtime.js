@@ -1270,9 +1270,14 @@ async function readResponseBytes(response, label) {
 // returns 200 for every URL instead of a real 404) can't turn this into a
 // runaway loop.
 const MAX_PROBE_PARTS = 64;
+const PART_FETCH_RETRIES = 3; // retry a part this many times if it comes back short/broken
 
 async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
-  async function fetchOnePart(partNum) {
+  // Fetches ONE attempt at a part. Verifies the bytes we actually received
+  // match Content-Length (when the server sends one) — a stream that drops
+  // partway through a large binary part ends quietly with no error, so
+  // without this check a truncated part silently corrupts the ROM.
+  async function fetchOnePartAttempt(partNum) {
     const partUrl = baseUrl + ".part" + partNum;
     const response = await fetch(partUrl, { mode: "cors" });
     if (!response.ok) {
@@ -1280,9 +1285,35 @@ async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
       err.status = response.status;
       throw err;
     }
+    const expected = Number(response.headers.get("content-length") || 0);
     const bytes = await readResponseBytes(response, label + " (part " + partNum + ")");
+    if (expected && bytes.byteLength !== expected) {
+      throw new Error(
+        "Part " + partNum + " came back incomplete: got " + formatBytes(bytes.byteLength) +
+        " of " + formatBytes(expected) + " expected (" + partUrl + ")"
+      );
+    }
     log("Multi-part download: fetched " + partUrl + " (" + formatBytes(bytes.byteLength) + ").", "ok");
     return bytes;
+  }
+
+  // Retries transient failures (dropped connection, truncated body, 5xx).
+  // Does NOT retry a clean 404 — in probe mode that's the normal signal
+  // that we've reached the last part, not a failure.
+  async function fetchOnePart(partNum) {
+    let lastErr;
+    for (let attempt = 1; attempt <= PART_FETCH_RETRIES; attempt++) {
+      try {
+        return await fetchOnePartAttempt(partNum);
+      } catch(e) {
+        lastErr = e;
+        if (e.status === 404) throw e; // genuinely missing — don't retry
+        if (attempt < PART_FETCH_RETRIES) {
+          log("Multi-part download: part " + partNum + " attempt " + attempt + " failed (" + e.message + "), retrying…", "warn");
+        }
+      }
+    }
+    throw lastErr;
   }
 
   let partChunks;
