@@ -4965,8 +4965,10 @@ refreshSavesTab();      // populate Saves tab from OPFS on load (no FS needed)
 // Show the loading screen immediately so the idle "open a game" start
 // screen never has a chance to flash on-screen while we fetch/check OPFS.
 showLoading("Loading game\u2026");
+// Base URL of the ROM WITHOUT the ".partN" suffix — the file itself is
+// split into "…Patapon (USA).chd.part1" through "…part8" (or however many
+// parts exist; fetchMultipartBytes stops as soon as one 404s).
 const AUTOLOAD_GAME_NAME = "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/psp/patapatapon/Patapon%20(USA).chd";
-const AUTOLOAD_GAME_URL  = "/roms/" + encodeURIComponent(AUTOLOAD_GAME_NAME);
 (async () => {
   try {
     const sanitized = AUTOLOAD_GAME_NAME.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -4974,10 +4976,8 @@ const AUTOLOAD_GAME_URL  = "/roms/" + encodeURIComponent(AUTOLOAD_GAME_NAME);
     let storedName = existing.some(g => g.path === sanitized) ? sanitized : null;
 
     if (!storedName) {
-      log("Autoload: fetching bundled game " + AUTOLOAD_GAME_NAME + "…", "info");
-      const res = await fetch(AUTOLOAD_GAME_URL);
-      if (!res.ok) throw new Error("Autoload fetch failed: HTTP " + res.status);
-      const bytes = new Uint8Array(await res.arrayBuffer());
+      log("Autoload: fetching bundled game " + AUTOLOAD_GAME_NAME + " (multi-part .partN files)…", "info");
+      const bytes = await fetchMultipartBytes(AUTOLOAD_GAME_NAME, "Patapon (USA).chd");
       storedName = await opfsPutGame(AUTOLOAD_GAME_NAME, bytes);
       log("Autoload: saved " + storedName + " to OPFS library (" + formatBytes(bytes.byteLength) + ").", "ok");
       await refreshLibrary();
