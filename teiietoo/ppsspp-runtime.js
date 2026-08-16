@@ -5031,4 +5031,4 @@ const AUTOLOAD_GAME_PARTS = 8; // exact known part count — fetched in parallel
     showToast("❌ Autoload failed: " + (e?.message || e), 5000);
   }
 })();
-
+// can i have a joe
