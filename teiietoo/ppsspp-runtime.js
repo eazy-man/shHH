@@ -1259,40 +1259,66 @@ async function readResponseBytes(response, label) {
 
 // Multi-file ROM support: some ROMs are split into sequentially numbered
 // parts, e.g. "Patapon (USA).chd.part1" … "Patapon (USA).chd.part8". Given
-// the base URL (without the ".partN" suffix), this fetches part1, part2, …
-// in order and concatenates them into a single ROM. It stops as soon as a
-// part is missing, so it works for any part count (not just 8) — it just
-// keeps appending ".part" + N until the server says there's no more.
-async function fetchMultipartBytes(baseUrl, label) {
-  const partChunks = [];
-  let totalBytes = 0;
-  let partNum = 1;
+// the base URL (without the ".partN" suffix), this fetches the parts and
+// concatenates them into a single ROM.
+//
+// If `knownPartCount` is given, it fetches exactly that many parts, in
+// PARALLEL (fast, no guessing, never overshoots past the real last part).
+// If it's omitted, it falls back to probing sequentially — part1, part2, …
+// — stopping the first time a part comes back missing, capped at
+// MAX_PROBE_PARTS as a safety net so a misbehaving server (e.g. one that
+// returns 200 for every URL instead of a real 404) can't turn this into a
+// runaway loop.
+const MAX_PROBE_PARTS = 64;
 
-  while (true) {
+async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
+  async function fetchOnePart(partNum) {
     const partUrl = baseUrl + ".part" + partNum;
-    let response;
-    try {
-      response = await fetch(partUrl, { mode: "cors" });
-    } catch(e) {
-      if (partNum === 1) throw new Error("Failed to fetch " + partUrl + ": " + e.message);
-      break; // ran out of parts
-    }
+    const response = await fetch(partUrl, { mode: "cors" });
     if (!response.ok) {
-      if (partNum === 1) throw new Error("HTTP " + response.status + " fetching " + partUrl);
-      break; // ran out of parts
+      const err = new Error("HTTP " + response.status + " fetching " + partUrl);
+      err.status = response.status;
+      throw err;
     }
-
-    const partLabel = label + " (part " + partNum + ")";
-    setStatus("Downloading " + partLabel, "run");
-    const bytes = await readResponseBytes(response, partLabel);
-    partChunks.push(bytes);
-    totalBytes += bytes.byteLength;
+    const bytes = await readResponseBytes(response, label + " (part " + partNum + ")");
     log("Multi-part download: fetched " + partUrl + " (" + formatBytes(bytes.byteLength) + ").", "ok");
-    partNum++;
+    return bytes;
+  }
+
+  let partChunks;
+
+  if (knownPartCount) {
+    // Exact count known — fetch every part at once instead of one-by-one.
+    let done = 0;
+    showLoading("Downloading " + label + "… 0 / " + knownPartCount + " parts");
+    setStatus("Downloading " + label + " (0 / " + knownPartCount + " parts)", "run");
+    const results = await Promise.all(
+      Array.from({ length: knownPartCount }, (_, i) => i + 1).map(async partNum => {
+        const bytes = await fetchOnePart(partNum);
+        done++;
+        showLoading("Downloading " + label + "… " + done + " / " + knownPartCount + " parts", done / knownPartCount);
+        setStatus("Downloading " + label + " (" + done + " / " + knownPartCount + " parts)", "run");
+        return { partNum, bytes };
+      })
+    );
+    partChunks = results.sort((a, b) => a.partNum - b.partNum).map(r => r.bytes);
+  } else {
+    // Count unknown — probe sequentially until a part is missing.
+    partChunks = [];
+    for (let partNum = 1; partNum <= MAX_PROBE_PARTS; partNum++) {
+      setStatus("Downloading " + label + " (part " + partNum + ")", "run");
+      try {
+        partChunks.push(await fetchOnePart(partNum));
+      } catch(e) {
+        if (partNum === 1) throw new Error("Failed to fetch part 1 of " + baseUrl + ": " + e.message);
+        break; // ran out of parts
+      }
+    }
   }
 
   if (!partChunks.length) throw new Error("No .part files found for " + baseUrl);
 
+  const totalBytes = partChunks.reduce((sum, c) => sum + c.byteLength, 0);
   log("Multi-part download: assembling " + partChunks.length + " part(s), " + formatBytes(totalBytes) + " total.", "ok");
   showLoading("Assembling " + label + " from " + partChunks.length + " part(s)…");
   const out = new Uint8Array(totalBytes);
@@ -4968,7 +4994,8 @@ showLoading("Loading game\u2026");
 // Base URL of the ROM WITHOUT the ".partN" suffix — the file itself is
 // split into "…Patapon (USA).chd.part1" through "…part8" (or however many
 // parts exist; fetchMultipartBytes stops as soon as one 404s).
-const AUTOLOAD_GAME_NAME = "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/psp/patapatapon/Patapon%20(USA).chd";
+const AUTOLOAD_GAME_NAME  = "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/psp/patapatapon/Patapon%20(USA).chd";
+const AUTOLOAD_GAME_PARTS = 8; // exact known part count — fetched in parallel, no probing
 (async () => {
   try {
     const sanitized = AUTOLOAD_GAME_NAME.replace(/[^a-zA-Z0-9._-]/g, "_");
@@ -4976,8 +5003,8 @@ const AUTOLOAD_GAME_NAME = "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/psp/p
     let storedName = existing.some(g => g.path === sanitized) ? sanitized : null;
 
     if (!storedName) {
-      log("Autoload: fetching bundled game " + AUTOLOAD_GAME_NAME + " (multi-part .partN files)…", "info");
-      const bytes = await fetchMultipartBytes(AUTOLOAD_GAME_NAME, "Patapon (USA).chd");
+      log("Autoload: fetching bundled game " + AUTOLOAD_GAME_NAME + " (" + AUTOLOAD_GAME_PARTS + " parts, parallel)…", "info");
+      const bytes = await fetchMultipartBytes(AUTOLOAD_GAME_NAME, "Patapon (USA).chd", AUTOLOAD_GAME_PARTS);
       storedName = await opfsPutGame(AUTOLOAD_GAME_NAME, bytes);
       log("Autoload: saved " + storedName + " to OPFS library (" + formatBytes(bytes.byteLength) + ").", "ok");
       await refreshLibrary();
