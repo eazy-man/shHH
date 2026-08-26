@@ -519,27 +519,61 @@ async function opfsPutGame(name, data) {
     create: true
   });
 
-  log("OPFS: creating writable stream…", "info");
+  // Chromium's FileSystemWritableFileStream internally splits one large
+  // write() into many small IPC calls to the backing file. For files over
+  // roughly 100 MB this can exceed the browser's file-operation rate limiter
+  // and fail with "unsafe for access ... too many calls" even though nothing
+  // is actually wrong. Writing in bounded chunks (with a small yield between
+  // each, and a retry-with-backoff around the whole attempt) keeps every
+  // individual write within the safe rate.
+  const OPFS_WRITE_CHUNK_BYTES = 8 * 1024 * 1024; // 8 MB per write() call
+  const OPFS_WRITE_MAX_ATTEMPTS = 3;
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-  const writable = await handle.createWritable();
-
-  try {
-    log("OPFS: writing " + formatBytes(data.byteLength) + "…", "info");
-
-    await writable.write(data);
-
-    log("OPFS: write completed.", "ok");
-
-    await writable.close();
-
-    log("OPFS: file closed successfully.", "ok");
-  } catch (e) {
+  let lastErr;
+  for (let attempt = 1; attempt <= OPFS_WRITE_MAX_ATTEMPTS; attempt++) {
+    let writable;
     try {
-      await writable.abort();
-    } catch (_) {}
+      log("OPFS: creating writable stream (attempt " + attempt + ")…", "info");
+      writable = await handle.createWritable({ keepExistingData: false });
 
-    throw e;
+      log("OPFS: writing " + formatBytes(data.byteLength) + " in " +
+          formatBytes(OPFS_WRITE_CHUNK_BYTES) + " chunks…", "info");
+
+      let offset = 0;
+      while (offset < data.byteLength) {
+        const end = Math.min(offset + OPFS_WRITE_CHUNK_BYTES, data.byteLength);
+        const chunk = data.subarray(offset, end);
+        await writable.write({ type: "write", position: offset, data: chunk });
+        offset = end;
+        // Yield to the event loop between chunks so writes don't queue up
+        // faster than the browser's rate limiter allows.
+        await sleep(0);
+      }
+
+      log("OPFS: write completed.", "ok");
+
+      await writable.close();
+
+      log("OPFS: file closed successfully.", "ok");
+      lastErr = null;
+      break;
+    } catch (e) {
+      lastErr = e;
+      try {
+        if (writable) await writable.abort();
+      } catch (_) {}
+
+      const transient = /unsafe for access|too many calls/i.test(e?.message || String(e));
+      if (transient && attempt < OPFS_WRITE_MAX_ATTEMPTS) {
+        log("OPFS: write attempt " + attempt + " hit a transient rate limit, retrying…", "warn");
+        await sleep(300 * attempt);
+        continue;
+      }
+      throw e;
+    }
   }
+  if (lastErr) throw lastErr;
 
   setPreloadFavorite(safe, true);
 
