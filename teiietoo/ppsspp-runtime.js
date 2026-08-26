@@ -504,14 +504,59 @@ async function opfsWalk(base = OPFS_PERSIST_DIR, prefix = "", includeData = true
 
 async function opfsPutGame(name, data) {
   const safe = name.replace(/[^a-zA-Z0-9._-]/g, "_");
-  const { dir, name: fileName } = await opfsParent(safe, true, OPFS_GAMES_DIR);
-  const handle = await dir.getFileHandle(fileName, { create: true });
+
+  log("OPFS: preparing to save " + safe + " (" + formatBytes(data.byteLength) + ")…", "info");
+
+  const { dir, name: fileName } = await opfsParent(
+    safe,
+    true,
+    OPFS_GAMES_DIR
+  );
+
+  log("OPFS: opening file " + fileName + "…", "info");
+
+  const handle = await dir.getFileHandle(fileName, {
+    create: true
+  });
+
+  log("OPFS: creating writable stream…", "info");
+
   const writable = await handle.createWritable();
-  await writable.write(data);
-  await writable.close();
+
+  try {
+    log("OPFS: writing " + formatBytes(data.byteLength) + "…", "info");
+
+    await writable.write(data);
+
+    log("OPFS: write completed.", "ok");
+
+    await writable.close();
+
+    log("OPFS: file closed successfully.", "ok");
+  } catch (e) {
+    try {
+      await writable.abort();
+    } catch (_) {}
+
+    throw e;
+  }
+
   setPreloadFavorite(safe, true);
-  try { await writeGameMetadata(safe, data); }
-  catch(e) { log("Library metadata failed for " + safe + ": " + e.message, "warn"); }
+
+  try {
+    await writeGameMetadata(safe, {
+      size: data.byteLength
+    });
+  } catch (e) {
+    log(
+      "Library metadata failed for " +
+      safe +
+      ": " +
+      e.message,
+      "warn"
+    );
+  }
+
   return safe;
 }
 
