@@ -414,173 +414,483 @@ function showToast(msg, ms = 3200) {
 /* ── OPFS Persistence ───────────────────────────────────────────── */
 let _opfsRoot = null;
 let _detectedMemstick = null;
-let _lastPersistTime  = 0;
-// path → "size:mtime" fingerprint of the last successfully persisted state
+let _lastPersistTime = 0;
 let _persistedFileState = new Map();
+const _opfsDirs = new Map();
 
 function hasOPFS() {
   return !!navigator.storage?.getDirectory;
 }
 
+function opfsSleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 async function opfsRoot() {
-  if (!hasOPFS()) throw new Error("Origin Private File System is not available in this browser/context");
+  if (!hasOPFS()) {
+    throw new Error(
+      "Origin Private File System is not available in this browser/context"
+    );
+  }
+
   if (_opfsRoot) return _opfsRoot;
-  const origin = await navigator.storage.getDirectory();
-  _opfsRoot = await origin.getDirectoryHandle(OPFS_ROOT_DIR, { create: true });
-  return _opfsRoot;
+
+  let lastErr;
+
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      const origin = await navigator.storage.getDirectory();
+
+      _opfsRoot = await origin.getDirectoryHandle(
+        OPFS_ROOT_DIR,
+        { create: true }
+      );
+
+      return _opfsRoot;
+    } catch (e) {
+      lastErr = e;
+
+      const msg = e?.message || String(e);
+
+      if (
+        !/unsafe for access|too many calls|quota|operation/i.test(msg) ||
+        attempt === 5
+      ) {
+        throw e;
+      }
+
+      const delay = attempt * 500;
+
+      log(
+        "OPFS: root access temporarily failed (" +
+        attempt +
+        "/5), retrying in " +
+        delay +
+        "ms…",
+        "warn"
+      );
+
+      await opfsSleep(delay);
+    }
+  }
+
+  throw lastErr;
 }
 
 async function opfsDir(parts, create) {
-  let dir = await opfsRoot();
-  for (const part of parts) dir = await dir.getDirectoryHandle(part, { create });
-  return dir;
+  const key = (create ? "1:" : "0:") + parts.join("/");
+
+  if (_opfsDirs.has(key)) {
+    return _opfsDirs.get(key);
+  }
+
+  let lastErr;
+
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    try {
+      let dir = await opfsRoot();
+
+      for (const part of parts) {
+        dir = await dir.getDirectoryHandle(
+          part,
+          { create }
+        );
+      }
+
+      _opfsDirs.set(key, dir);
+
+      return dir;
+    } catch (e) {
+      lastErr = e;
+
+      const msg = e?.message || String(e);
+
+      if (
+        !/unsafe for access|too many calls|quota|operation/i.test(msg) ||
+        attempt === 5
+      ) {
+        throw e;
+      }
+
+      const delay = attempt * 500;
+
+      log(
+        "OPFS: directory access temporarily failed (" +
+        attempt +
+        "/5), retrying in " +
+        delay +
+        "ms…",
+        "warn"
+      );
+
+      await opfsSleep(delay);
+    }
+  }
+
+  throw lastErr;
 }
 
 function opfsPathParts(path) {
-  return path.split("/").filter(Boolean);
+  return String(path)
+    .split("/")
+    .filter(Boolean);
 }
 
-async function opfsParent(path, create, base = OPFS_PERSIST_DIR) {
+async function opfsParent(
+  path,
+  create,
+  base = OPFS_PERSIST_DIR
+) {
   const parts = opfsPathParts(path);
   const name = parts.pop();
-  if (!name) throw new Error("Invalid OPFS path: " + path);
-  return { dir: await opfsDir([base, ...parts], create), name };
+
+  if (!name) {
+    throw new Error(
+      "Invalid OPFS path: " + path
+    );
+  }
+
+  return {
+    dir: await opfsDir(
+      [base, ...parts],
+      create
+    ),
+    name
+  };
 }
 
 async function opfsPut(path, data) {
-  const { dir, name } = await opfsParent(path, true);
-  const handle = await dir.getFileHandle(name, { create: true });
+  const { dir, name } = await opfsParent(
+    path,
+    true
+  );
+
+  const handle = await dir.getFileHandle(
+    name,
+    { create: true }
+  );
+
   const writable = await handle.createWritable();
-  await writable.write(data);
-  await writable.close();
+
+  try {
+    await writable.write(data);
+    await writable.close();
+  } catch (e) {
+    try {
+      await writable.abort();
+    } catch (_) {}
+
+    throw e;
+  }
 }
 
 async function opfsRead(path) {
-  const { dir, name } = await opfsParent(path, false);
+  const { dir, name } = await opfsParent(
+    path,
+    false
+  );
+
   const handle = await dir.getFileHandle(name);
-  return new Uint8Array(await (await handle.getFile()).arrayBuffer());
+
+  return new Uint8Array(
+    await (await handle.getFile()).arrayBuffer()
+  );
 }
 
 async function opfsDelete(path) {
-  const { dir, name } = await opfsParent(path, false);
+  const { dir, name } = await opfsParent(
+    path,
+    false
+  );
+
   await dir.removeEntry(name);
 }
 
 async function opfsClearAll() {
   const root = await opfsRoot();
-  try { await root.removeEntry(OPFS_PERSIST_DIR, { recursive: true }); } catch(e) {}
-  try { await root.removeEntry(OPFS_GAMES_DIR, { recursive: true }); } catch(e) {}
-  try { await root.removeEntry(OPFS_GAME_META_DIR, { recursive: true }); } catch(e) {}
-  localStorage.removeItem(PRELOAD_FAVORITES_KEY);
-  localStorage.removeItem(PRELOAD_FAVORITES_MIGRATED_KEY);
-  await root.getDirectoryHandle(OPFS_PERSIST_DIR, { create: true });
-  await root.getDirectoryHandle(OPFS_GAMES_DIR, { create: true });
-  await root.getDirectoryHandle(OPFS_GAME_META_DIR, { create: true });
+
+  try {
+    await root.removeEntry(
+      OPFS_PERSIST_DIR,
+      { recursive: true }
+    );
+  } catch (e) {}
+
+  try {
+    await root.removeEntry(
+      OPFS_GAMES_DIR,
+      { recursive: true }
+    );
+  } catch (e) {}
+
+  try {
+    await root.removeEntry(
+      OPFS_GAME_META_DIR,
+      { recursive: true }
+    );
+  } catch (e) {}
+
+  _opfsDirs.clear();
+
+  localStorage.removeItem(
+    PRELOAD_FAVORITES_KEY
+  );
+
+  localStorage.removeItem(
+    PRELOAD_FAVORITES_MIGRATED_KEY
+  );
+
+  await root.getDirectoryHandle(
+    OPFS_PERSIST_DIR,
+    { create: true }
+  );
+
+  await root.getDirectoryHandle(
+    OPFS_GAMES_DIR,
+    { create: true }
+  );
+
+  await root.getDirectoryHandle(
+    OPFS_GAME_META_DIR,
+    { create: true }
+  );
 }
 
-async function opfsWalk(base = OPFS_PERSIST_DIR, prefix = "", includeData = true) {
+async function opfsWalk(
+  base = OPFS_PERSIST_DIR,
+  prefix = "",
+  includeData = true
+) {
   const files = [];
-  let dir;
-  try { dir = await opfsDir([base, ...opfsPathParts(prefix)], false); }
-  catch(e) { return files; }
 
-  for await (const [name, handle] of dir.entries()) {
-    const rel = prefix ? prefix + "/" + name : name;
+  let dir;
+
+  try {
+    dir = await opfsDir(
+      [
+        base,
+        ...opfsPathParts(prefix)
+      ],
+      false
+    );
+  } catch (e) {
+    return files;
+  }
+
+  for await (
+    const [name, handle]
+    of dir.entries()
+  ) {
+    const rel = prefix
+      ? prefix + "/" + name
+      : name;
+
     if (handle.kind === "directory") {
-      files.push(...await opfsWalk(base, rel, includeData));
+      files.push(
+        ...await opfsWalk(
+          base,
+          rel,
+          includeData
+        )
+      );
     } else {
       const file = await handle.getFile();
+
       const entry = {
-        path: base === OPFS_PERSIST_DIR ? "/" + rel : rel,
+        path:
+          base === OPFS_PERSIST_DIR
+            ? "/" + rel
+            : rel,
         name,
-        size: file.size,
+        size: file.size
       };
-      if (includeData) entry.data = new Uint8Array(await file.arrayBuffer());
+
+      if (includeData) {
+        entry.data =
+          new Uint8Array(
+            await file.arrayBuffer()
+          );
+      }
+
       files.push(entry);
     }
   }
+
   return files;
 }
 
 async function opfsPutGame(name, data) {
-  const safe = name.replace(/[^a-zA-Z0-9._-]/g, "_");
-
-  log("OPFS: preparing to save " + safe + " (" + formatBytes(data.byteLength) + ")…", "info");
-
-  const { dir, name: fileName } = await opfsParent(
-    safe,
-    true,
-    OPFS_GAMES_DIR
+  const safe = String(name).replace(
+    /[^a-zA-Z0-9._-]/g,
+    "_"
   );
 
-  log("OPFS: opening file " + fileName + "…", "info");
+  log(
+    "OPFS: preparing to save " +
+    safe +
+    " (" +
+    formatBytes(data.byteLength) +
+    ")…",
+    "info"
+  );
 
-  const handle = await dir.getFileHandle(fileName, {
-    create: true
-  });
+  const { dir, name: fileName } =
+    await opfsParent(
+      safe,
+      true,
+      OPFS_GAMES_DIR
+    );
 
-  // Chromium's FileSystemWritableFileStream internally splits one large
-  // write() into many small IPC calls to the backing file. For files over
-  // roughly 100 MB this can exceed the browser's file-operation rate limiter
-  // and fail with "unsafe for access ... too many calls" even though nothing
-  // is actually wrong. Writing in bounded chunks (with a small yield between
-  // each, and a retry-with-backoff around the whole attempt) keeps every
-  // individual write within the safe rate.
-  const OPFS_WRITE_CHUNK_BYTES = 8 * 1024 * 1024; // 8 MB per write() call
+  log(
+    "OPFS: opening file " +
+    fileName +
+    "…",
+    "info"
+  );
+
+  const handle =
+    await dir.getFileHandle(
+      fileName,
+      { create: true }
+    );
+
+  const OPFS_WRITE_CHUNK_BYTES =
+    8 * 1024 * 1024;
+
   const OPFS_WRITE_MAX_ATTEMPTS = 3;
-  const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-  let lastErr;
-  for (let attempt = 1; attempt <= OPFS_WRITE_MAX_ATTEMPTS; attempt++) {
-    let writable;
+  let lastErr = null;
+
+  for (
+    let attempt = 1;
+    attempt <= OPFS_WRITE_MAX_ATTEMPTS;
+    attempt++
+  ) {
+    let writable = null;
+
     try {
-      log("OPFS: creating writable stream (attempt " + attempt + ")…", "info");
-      writable = await handle.createWritable({ keepExistingData: false });
+      log(
+        "OPFS: creating writable stream (attempt " +
+        attempt +
+        ")…",
+        "info"
+      );
 
-      log("OPFS: writing " + formatBytes(data.byteLength) + " in " +
-          formatBytes(OPFS_WRITE_CHUNK_BYTES) + " chunks…", "info");
+      writable =
+        await handle.createWritable({
+          keepExistingData: false
+        });
+
+      log(
+        "OPFS: writing " +
+        formatBytes(data.byteLength) +
+        " in " +
+        formatBytes(OPFS_WRITE_CHUNK_BYTES) +
+        " chunks…",
+        "info"
+      );
 
       let offset = 0;
-      while (offset < data.byteLength) {
-        const end = Math.min(offset + OPFS_WRITE_CHUNK_BYTES, data.byteLength);
-        const chunk = data.subarray(offset, end);
-        await writable.write({ type: "write", position: offset, data: chunk });
+
+      while (
+        offset < data.byteLength
+      ) {
+        const end = Math.min(
+          offset +
+            OPFS_WRITE_CHUNK_BYTES,
+          data.byteLength
+        );
+
+        const chunk =
+          data.subarray(
+            offset,
+            end
+          );
+
+        await writable.write({
+          type: "write",
+          position: offset,
+          data: chunk
+        });
+
         offset = end;
-        // Yield to the event loop between chunks so writes don't queue up
-        // faster than the browser's rate limiter allows.
-        await sleep(0);
+
+        await opfsSleep(0);
       }
 
-      log("OPFS: write completed.", "ok");
+      log(
+        "OPFS: write completed.",
+        "ok"
+      );
 
       await writable.close();
 
-      log("OPFS: file closed successfully.", "ok");
+      writable = null;
+
+      log(
+        "OPFS: file closed successfully.",
+        "ok"
+      );
+
       lastErr = null;
       break;
     } catch (e) {
       lastErr = e;
+
       try {
-        if (writable) await writable.abort();
+        if (writable) {
+          await writable.abort();
+        }
       } catch (_) {}
 
-      const transient = /unsafe for access|too many calls/i.test(e?.message || String(e));
-      if (transient && attempt < OPFS_WRITE_MAX_ATTEMPTS) {
-        log("OPFS: write attempt " + attempt + " hit a transient rate limit, retrying…", "warn");
-        await sleep(300 * attempt);
+      const msg =
+        e?.message ||
+        String(e);
+
+      const transient =
+        /unsafe for access|too many calls/i
+          .test(msg);
+
+      if (
+        transient &&
+        attempt < OPFS_WRITE_MAX_ATTEMPTS
+      ) {
+        const delay =
+          500 * attempt;
+
+        log(
+          "OPFS: write attempt " +
+          attempt +
+          " hit a transient file-operation limit, retrying in " +
+          delay +
+          "ms…",
+          "warn"
+        );
+
+        await opfsSleep(delay);
         continue;
       }
+
       throw e;
     }
   }
-  if (lastErr) throw lastErr;
 
-  setPreloadFavorite(safe, true);
+  if (lastErr) {
+    throw lastErr;
+  }
+
+  setPreloadFavorite(
+    safe,
+    true
+  );
 
   try {
-    await writeGameMetadata(safe, {
-      size: data.byteLength
-    });
+    await writeGameMetadata(
+      safe,
+      {
+        size: data.byteLength
+      }
+    );
   } catch (e) {
     log(
       "Library metadata failed for " +
@@ -595,21 +905,62 @@ async function opfsPutGame(name, data) {
 }
 
 async function opfsReadGame(name) {
-  const { dir, name: fileName } = await opfsParent(name, false, OPFS_GAMES_DIR);
-  const handle = await dir.getFileHandle(fileName);
-  return new Uint8Array(await (await handle.getFile()).arrayBuffer());
+  const {
+    dir,
+    name: fileName
+  } = await opfsParent(
+    name,
+    false,
+    OPFS_GAMES_DIR
+  );
+
+  const handle =
+    await dir.getFileHandle(
+      fileName
+    );
+
+  return new Uint8Array(
+    await (
+      await handle.getFile()
+    ).arrayBuffer()
+  );
 }
 
 async function opfsGetGameFile(name) {
-  const { dir, name: fileName } = await opfsParent(name, false, OPFS_GAMES_DIR);
-  const handle = await dir.getFileHandle(fileName);
+  const {
+    dir,
+    name: fileName
+  } = await opfsParent(
+    name,
+    false,
+    OPFS_GAMES_DIR
+  );
+
+  const handle =
+    await dir.getFileHandle(
+      fileName
+    );
+
   return await handle.getFile();
 }
 
 async function opfsDeleteGame(name) {
-  const { dir, name: fileName } = await opfsParent(name, false, OPFS_GAMES_DIR);
-  await dir.removeEntry(fileName);
-  await deleteGameMetadata(name);
+  const {
+    dir,
+    name: fileName
+  } = await opfsParent(
+    name,
+    false,
+    OPFS_GAMES_DIR
+  );
+
+  await dir.removeEntry(
+    fileName
+  );
+
+  await deleteGameMetadata(
+    name
+  );
 }
 
 // Walk Emscripten FS recursively from root, return [{path, data}]
