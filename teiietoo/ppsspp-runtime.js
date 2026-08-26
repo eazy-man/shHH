@@ -1273,87 +1273,220 @@ const MAX_PROBE_PARTS = 64;
 const PART_FETCH_RETRIES = 3; // retry a part this many times if it comes back short/broken
 
 async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
-  // Fetches ONE attempt at a part. Verifies the bytes we actually received
-  // match Content-Length (when the server sends one) — a stream that drops
-  // partway through a large binary part ends quietly with no error, so
-  // without this check a truncated part silently corrupts the ROM.
   async function fetchOnePartAttempt(partNum) {
     const partUrl = baseUrl + ".part" + partNum;
-    const response = await fetch(partUrl, { mode: "cors" });
+    const response = await fetch(partUrl, { mode: "cors", cache: "no-store" });
+
     if (!response.ok) {
       const err = new Error("HTTP " + response.status + " fetching " + partUrl);
       err.status = response.status;
       throw err;
     }
-    // Plain arrayBuffer() read (like the known-good Unity splitter) instead
-    // of a manual stream reader — simpler and doesn't risk stopping early.
+
     const buf = await response.arrayBuffer();
+
+    if (!buf.byteLength) {
+      throw new Error("Empty response for " + partUrl);
+    }
+
     const bytes = new Uint8Array(buf);
-    log("Multi-part download: fetched " + partUrl + " (" + formatBytes(bytes.byteLength) + ").", "ok");
+
+    const contentLength = response.headers.get("Content-Length");
+    if (contentLength && Number(contentLength) !== bytes.byteLength) {
+      throw new Error(
+        "Truncated part " + partNum +
+        ": expected " + contentLength +
+        " bytes, received " + bytes.byteLength
+      );
+    }
+
+    log(
+      "Multi-part download: fetched " +
+      partUrl +
+      " (" +
+      formatBytes(bytes.byteLength) +
+      ").",
+      "ok"
+    );
+
     return bytes;
   }
 
-  // Retries transient failures (dropped connection, truncated body, 5xx).
-  // Does NOT retry a clean 404 — in probe mode that's the normal signal
-  // that we've reached the last part, not a failure.
   async function fetchOnePart(partNum) {
     let lastErr;
+
     for (let attempt = 1; attempt <= PART_FETCH_RETRIES; attempt++) {
       try {
         return await fetchOnePartAttempt(partNum);
-      } catch(e) {
+      } catch (e) {
         lastErr = e;
-        if (e.status === 404) throw e; // genuinely missing — don't retry
+
+        if (e.status === 404) {
+          throw e;
+        }
+
         if (attempt < PART_FETCH_RETRIES) {
-          log("Multi-part download: part " + partNum + " attempt " + attempt + " failed (" + e.message + "), retrying…", "warn");
+          log(
+            "Multi-part download: part " +
+            partNum +
+            " attempt " +
+            attempt +
+            " failed (" +
+            e.message +
+            "), retrying…",
+            "warn"
+          );
         }
       }
     }
+
     throw lastErr;
   }
 
-  let partChunks;
+  let partChunks = [];
 
   if (knownPartCount) {
-    // Exact count known — fetch every part at once instead of one-by-one.
     let done = 0;
-    showLoading("Downloading " + label + "… 0 / " + knownPartCount + " parts");
-    setStatus("Downloading " + label + " (0 / " + knownPartCount + " parts)", "run");
+
+    showLoading(
+      "Downloading " +
+      label +
+      "… 0 / " +
+      knownPartCount +
+      " parts"
+    );
+
+    setStatus(
+      "Downloading " +
+      label +
+      " (0 / " +
+      knownPartCount +
+      " parts)",
+      "run"
+    );
+
     const results = await Promise.all(
-      Array.from({ length: knownPartCount }, (_, i) => i + 1).map(async partNum => {
+      Array.from(
+        { length: knownPartCount },
+        (_, i) => i + 1
+      ).map(async partNum => {
         const bytes = await fetchOnePart(partNum);
+
         done++;
-        showLoading("Downloading " + label + "… " + done + " / " + knownPartCount + " parts", done / knownPartCount);
-        setStatus("Downloading " + label + " (" + done + " / " + knownPartCount + " parts)", "run");
-        return { partNum, bytes };
+
+        showLoading(
+          "Downloading " +
+          label +
+          "… " +
+          done +
+          " / " +
+          knownPartCount +
+          " parts",
+          done / knownPartCount
+        );
+
+        setStatus(
+          "Downloading " +
+          label +
+          " (" +
+          done +
+          " / " +
+          knownPartCount +
+          " parts)",
+          "run"
+        );
+
+        return {
+          partNum,
+          bytes
+        };
       })
     );
-    partChunks = results.sort((a, b) => a.partNum - b.partNum).map(r => r.bytes);
+
+    results.sort((a, b) => a.partNum - b.partNum);
+    partChunks = results.map(r => r.bytes);
   } else {
-    // Count unknown — probe sequentially until a part is missing.
-    partChunks = [];
-    for (let partNum = 1; partNum <= MAX_PROBE_PARTS; partNum++) {
-      setStatus("Downloading " + label + " (part " + partNum + ")", "run");
+    for (
+      let partNum = 1;
+      partNum <= MAX_PROBE_PARTS;
+      partNum++
+    ) {
+      setStatus(
+        "Downloading " +
+        label +
+        " (part " +
+        partNum +
+        ")",
+        "run"
+      );
+
       try {
         partChunks.push(await fetchOnePart(partNum));
-      } catch(e) {
-        if (partNum === 1) throw new Error("Failed to fetch part 1 of " + baseUrl + ": " + e.message);
-        break; // ran out of parts
+      } catch (e) {
+        if (partNum === 1) {
+          throw new Error(
+            "Failed to fetch part 1 of " +
+            baseUrl +
+            ": " +
+            e.message
+          );
+        }
+
+        break;
       }
     }
   }
 
-  if (!partChunks.length) throw new Error("No .part files found for " + baseUrl);
+  if (!partChunks.length) {
+    throw new Error(
+      "No .part files found for " + baseUrl
+    );
+  }
 
-  const totalBytes = partChunks.reduce((sum, c) => sum + c.byteLength, 0);
-  log("Multi-part download: assembling " + partChunks.length + " part(s), " + formatBytes(totalBytes) + " total.", "ok");
-  showLoading("Assembling " + label + " from " + partChunks.length + " part(s)…");
+  const totalBytes = partChunks.reduce(
+    (sum, chunk) => sum + chunk.byteLength,
+    0
+  );
+
+  log(
+    "Multi-part download: assembling " +
+    partChunks.length +
+    " part(s), " +
+    formatBytes(totalBytes) +
+    " total.",
+    "ok"
+  );
+
+  showLoading(
+    "Assembling " +
+    label +
+    " from " +
+    partChunks.length +
+    " part(s)…"
+  );
+
   const out = new Uint8Array(totalBytes);
+
   let offset = 0;
-  for (const chunk of partChunks) {
+
+  for (let i = 0; i < partChunks.length; i++) {
+    const chunk = partChunks[i];
+
     out.set(chunk, offset);
     offset += chunk.byteLength;
+
+    partChunks[i] = null;
   }
+
+  partChunks.length = 0;
+
+  log(
+    "Multi-part download: assembled " +
+    formatBytes(out.byteLength) +
+    " successfully.",
+    "ok"
+  );
+
   return out;
 }
 
