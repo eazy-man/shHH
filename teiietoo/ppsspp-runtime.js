@@ -5188,26 +5188,54 @@ refreshLibrary();
 updateStorageInfo();    // populate OPFS tab with stats on load
 refreshSavesTab();      // populate Saves tab from OPFS on load (no FS needed)
 
-/* ── Autoload bundled game ─────────────────────────────────────── */
-// Show the loading screen immediately so the idle "open a game" start
-// screen never has a chance to flash on-screen while we fetch/check OPFS.
-showLoading("Loading game\u2026");
-// Base URL of the ROM WITHOUT the ".partN" suffix — the file itself is
-// split into "…Patapon (USA).chd.part1" through "…part8" (or however many
-// parts exist; fetchMultipartBytes stops as soon as one 404s).
-const AUTOLOAD_GAME_NAME  = "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/psp/patapatapon/Patapon%20(USA).chd";
-const AUTOLOAD_GAME_PARTS = 8; // exact known part count — fetched in parallel, no probing
+const AUTOLOAD_GAME_NAME = "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/psp/patapatapon/Patapon%20(USA).chd";
+const AUTOLOAD_GAME_FILENAME = "Patapon (USA).chd";
+const AUTOLOAD_GAME_PARTS = 8;
+
 (async () => {
   try {
-    const sanitized = AUTOLOAD_GAME_NAME.replace(/[^a-zA-Z0-9._-]/g, "_");
-    const existing = await opfsWalk(OPFS_GAMES_DIR, "", false);
-    let storedName = existing.some(g => g.path === sanitized) ? sanitized : null;
+    const sanitized = AUTOLOAD_GAME_FILENAME.replace(/[^a-zA-Z0-9._-]/g, "_");
+
+    const existing = await opfsWalk(
+      OPFS_GAMES_DIR,
+      "",
+      false
+    );
+
+    let storedName = existing.some(
+      g => g.path === sanitized
+    ) ? sanitized : null;
 
     if (!storedName) {
-      log("Autoload: fetching bundled game " + AUTOLOAD_GAME_NAME + " (" + AUTOLOAD_GAME_PARTS + " parts, parallel)…", "info");
-      const bytes = await fetchMultipartBytes(AUTOLOAD_GAME_NAME, "Patapon (USA).chd", AUTOLOAD_GAME_PARTS);
-      storedName = await opfsPutGame(AUTOLOAD_GAME_NAME, bytes);
-      log("Autoload: saved " + storedName + " to OPFS library (" + formatBytes(bytes.byteLength) + ").", "ok");
+      log(
+        "Autoload: fetching bundled game " +
+        AUTOLOAD_GAME_NAME +
+        " (" +
+        AUTOLOAD_GAME_PARTS +
+        " parts, parallel)…",
+        "info"
+      );
+
+      const bytes = await fetchMultipartBytes(
+        AUTOLOAD_GAME_NAME,
+        AUTOLOAD_GAME_FILENAME,
+        AUTOLOAD_GAME_PARTS
+      );
+
+      storedName = await opfsPutGame(
+        AUTOLOAD_GAME_FILENAME,
+        bytes
+      );
+
+      log(
+        "Autoload: saved " +
+        storedName +
+        " to OPFS library (" +
+        formatBytes(bytes.byteLength) +
+        ").",
+        "ok"
+      );
+
       await refreshLibrary();
       updateStorageInfo();
     }
@@ -5215,21 +5243,52 @@ const AUTOLOAD_GAME_PARTS = 8; // exact known part count — fetched in parallel
     if (!started) {
       selectedStoredGame = storedName;
       selectedGame = null;
-      if (fileLabel) fileLabel.title = AUTOLOAD_GAME_NAME;
+
+      if (fileLabel) {
+        fileLabel.title = AUTOLOAD_GAME_NAME;
+      }
+
       const textNode = fileLabel?.firstChild;
-      if (textNode && textNode.nodeType === 3) textNode.textContent = "\uD83D\uDCC2 " + AUTOLOAD_GAME_NAME + " ";
+
+      if (
+        textNode &&
+        textNode.nodeType === 3
+      ) {
+        textNode.textContent =
+          "\uD83D\uDCC2 " +
+          AUTOLOAD_GAME_FILENAME +
+          " ";
+      }
+
       updateIdleOverlay();
-      setStatus("Launching " + AUTOLOAD_GAME_NAME + "…", "run");
-      log("Autoload: " + AUTOLOAD_GAME_NAME + " selected, launching automatically…", "ok");
-      // Skip the start screen entirely — launch right away. Audio may stay
-      // suspended until the first click/keypress/touch (browser autoplay
-      // policy); the existing pointerdown/keydown listeners call
-      // unlockAudio() the moment that happens.
+
+      setStatus(
+        "Launching " +
+        AUTOLOAD_GAME_FILENAME +
+        "…",
+        "run"
+      );
+
+      log(
+        "Autoload: " +
+        AUTOLOAD_GAME_FILENAME +
+        " selected, launching automatically…",
+        "ok"
+      );
+
       start();
     }
-  } catch(e) {
-    log("Autoload failed: " + (e?.message || e), "err");
-    showToast("❌ Autoload failed: " + (e?.message || e), 5000);
+  } catch (e) {
+    log(
+      "Autoload failed: " +
+      (e?.message || e),
+      "err"
+    );
+
+    showToast(
+      "❌ Autoload failed: " +
+      (e?.message || e),
+      5000
+    );
   }
 })();
-// can i have a joe
