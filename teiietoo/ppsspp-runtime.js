@@ -1275,10 +1275,16 @@ const PART_FETCH_RETRIES = 3; // retry a part this many times if it comes back s
 async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
   async function fetchOnePartAttempt(partNum) {
     const partUrl = baseUrl + ".part" + partNum;
-    const response = await fetch(partUrl, { mode: "cors", cache: "no-store" });
+
+    const response = await fetch(partUrl, {
+      mode: "cors",
+      cache: "no-store"
+    });
 
     if (!response.ok) {
-      const err = new Error("HTTP " + response.status + " fetching " + partUrl);
+      const err = new Error(
+        "HTTP " + response.status + " fetching " + partUrl
+      );
       err.status = response.status;
       throw err;
     }
@@ -1290,15 +1296,6 @@ async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
     }
 
     const bytes = new Uint8Array(buf);
-
-    const contentLength = response.headers.get("Content-Length");
-    if (contentLength && Number(contentLength) !== bytes.byteLength) {
-      throw new Error(
-        "Truncated part " + partNum +
-        ": expected " + contentLength +
-        " bytes, received " + bytes.byteLength
-      );
-    }
 
     log(
       "Multi-part download: fetched " +
@@ -1343,7 +1340,7 @@ async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
     throw lastErr;
   }
 
-  let partChunks = [];
+  let partChunks;
 
   if (knownPartCount) {
     let done = 0;
@@ -1404,8 +1401,11 @@ async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
     );
 
     results.sort((a, b) => a.partNum - b.partNum);
+
     partChunks = results.map(r => r.bytes);
   } else {
+    partChunks = [];
+
     for (
       let partNum = 1;
       partNum <= MAX_PROBE_PARTS;
@@ -1421,7 +1421,9 @@ async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
       );
 
       try {
-        partChunks.push(await fetchOnePart(partNum));
+        partChunks.push(
+          await fetchOnePart(partNum)
+        );
       } catch (e) {
         if (partNum === 1) {
           throw new Error(
@@ -1469,16 +1471,10 @@ async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
 
   let offset = 0;
 
-  for (let i = 0; i < partChunks.length; i++) {
-    const chunk = partChunks[i];
-
+  for (const chunk of partChunks) {
     out.set(chunk, offset);
     offset += chunk.byteLength;
-
-    partChunks[i] = null;
   }
-
-  partChunks.length = 0;
 
   log(
     "Multi-part download: assembled " +
