@@ -5573,7 +5573,12 @@ refreshLibrary();
 updateStorageInfo();    // populate OPFS tab with stats on load
 refreshSavesTab();      // populate Saves tab from OPFS on load (no FS needed)
 
-const AUTOLOAD_GAME_NAME = "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/psp/patapatapon/Patapon%20(USA).chd";
+/* ── Autoload bundled game ─────────────────────────────────────── */
+showLoading("Loading game…");
+
+const AUTOLOAD_GAME_NAME =
+  "https://cdn.jsdelivr.net/gh/eazy-man/shHH@main/psp/patapatapon/Patapon%20(USA).chd";
+
 const AUTOLOAD_GAME_FILENAME = "Patapon (USA).chd";
 const AUTOLOAD_GAME_PARTS = 8;
 
@@ -5581,15 +5586,10 @@ const AUTOLOAD_GAME_PARTS = 8;
   try {
     const sanitized = AUTOLOAD_GAME_FILENAME.replace(/[^a-zA-Z0-9._-]/g, "_");
 
-    const existing = await opfsWalk(
-      OPFS_GAMES_DIR,
-      "",
-      false
-    );
-
-    let storedName = existing.some(
-      g => g.path === sanitized
-    ) ? sanitized : null;
+    const existing = await opfsWalk(OPFS_GAMES_DIR, "", false);
+    let storedName = existing.some(g => g.path === sanitized)
+      ? sanitized
+      : null;
 
     if (!storedName) {
       log(
@@ -5607,50 +5607,68 @@ const AUTOLOAD_GAME_PARTS = 8;
         AUTOLOAD_GAME_PARTS
       );
 
-      storedName = await opfsPutGame(
-        AUTOLOAD_GAME_FILENAME,
-        bytes
-      );
-
       log(
-        "Autoload: saved " +
-        storedName +
-        " to OPFS library (" +
+        "Multi-part download: assembled " +
         formatBytes(bytes.byteLength) +
-        ").",
+        " successfully.",
         "ok"
       );
 
-      await refreshLibrary();
-      updateStorageInfo();
-    }
+      /*
+       * IMPORTANT:
+       * Do NOT put the bundled game into OPFS here.
+       *
+       * Chromium can reject a large OPFS write with:
+       * "certain files are unsafe for access..."
+       *
+       * Keep the already-downloaded bytes in memory instead.
+       */
+      autoLoadedGameBytes = bytes;
 
-    if (!started) {
+      selectedGame = new File(
+        [bytes],
+        AUTOLOAD_GAME_FILENAME,
+        {
+          type: "application/octet-stream"
+        }
+      );
+
+      selectedStoredGame = null;
+      storedName = AUTOLOAD_GAME_FILENAME;
+
+      log(
+        "Autoload: keeping " +
+        formatBytes(bytes.byteLength) +
+        " in memory for PPSSPP.",
+        "ok"
+      );
+    } else {
       selectedStoredGame = storedName;
       selectedGame = null;
 
+      log(
+        "Autoload: found existing game in OPFS: " +
+        storedName,
+        "ok"
+      );
+    }
+
+    if (!started) {
       if (fileLabel) {
         fileLabel.title = AUTOLOAD_GAME_NAME;
-      }
 
-      const textNode = fileLabel?.firstChild;
+        const textNode = fileLabel.firstChild;
 
-      if (
-        textNode &&
-        textNode.nodeType === 3
-      ) {
-        textNode.textContent =
-          "\uD83D\uDCC2 " +
-          AUTOLOAD_GAME_FILENAME +
-          " ";
+        if (textNode && textNode.nodeType === 3) {
+          textNode.textContent =
+            "📂 " + AUTOLOAD_GAME_FILENAME + " ";
+        }
       }
 
       updateIdleOverlay();
 
       setStatus(
-        "Launching " +
-        AUTOLOAD_GAME_FILENAME +
-        "…",
+        "Launching " + AUTOLOAD_GAME_FILENAME + "…",
         "run"
       );
 
@@ -5666,7 +5684,7 @@ const AUTOLOAD_GAME_PARTS = 8;
   } catch (e) {
     log(
       "Autoload failed: " +
-      (e?.message || e),
+      (e?.stack || e?.message || e),
       "err"
     );
 
