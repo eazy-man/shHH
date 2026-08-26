@@ -1285,14 +1285,10 @@ async function fetchMultipartBytes(baseUrl, label, knownPartCount = null) {
       err.status = response.status;
       throw err;
     }
-    const expected = Number(response.headers.get("content-length") || 0);
-    const bytes = await readResponseBytes(response, label + " (part " + partNum + ")");
-    if (expected && bytes.byteLength !== expected) {
-      throw new Error(
-        "Part " + partNum + " came back incomplete: got " + formatBytes(bytes.byteLength) +
-        " of " + formatBytes(expected) + " expected (" + partUrl + ")"
-      );
-    }
+    // Plain arrayBuffer() read (like the known-good Unity splitter) instead
+    // of a manual stream reader — simpler and doesn't risk stopping early.
+    const buf = await response.arrayBuffer();
+    const bytes = new Uint8Array(buf);
     log("Multi-part download: fetched " + partUrl + " (" + formatBytes(bytes.byteLength) + ").", "ok");
     return bytes;
   }
